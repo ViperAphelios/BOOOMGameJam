@@ -1780,6 +1780,7 @@ GameObject:
   - component: {fileID: 1287862329}
   - component: {fileID: 1287862331}
   - component: {fileID: 1287862330}
+  - component: {fileID: 1287862332}
   m_Layer: 0
   m_Name: Sprite
   m_TagString: Untagged
@@ -1875,6 +1876,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1287862332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1287862328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2ceb2b8d18ebbe43843f1598026347f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1336629741
 GameObject:
   m_ObjectHideFlags: 0
@@ -1887,6 +1900,7 @@ GameObject:
   - component: {fileID: 1336629743}
   - component: {fileID: 1336629742}
   - component: {fileID: 1336629745}
+  - component: {fileID: 1336629746}
   m_Layer: 0
   m_Name: ///Player
   m_TagString: Untagged
@@ -1987,7 +2001,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 0
   attackDamage: 0
-  speed: 0
+  speed: 50
   currentHealth: 0
   isOnGround: 0
   isInjuredInvincible: 0
@@ -2005,6 +2019,23 @@ MonoBehaviour:
   onHealthChange:
     m_PersistentCalls:
       m_Calls: []
+  currentSpeed: 0
+  isClimbUp: 0
+  isWalk: 0
+--- !u!114 &1336629746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336629741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee267313339db7540a25f53e3b9f991c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  forwardDirection: {x: 0, y: 0}
+  inputMoveValue: {x: 0, y: 0}
 --- !u!1 &1439931487
 GameObject:
   m_ObjectHideFlags: 0

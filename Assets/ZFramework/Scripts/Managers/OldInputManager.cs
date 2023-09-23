@@ -1,20 +1,18 @@
 using UnityEngine;
 using ZFramework.Interfaces;
+using ZFramework.Tools;
 
 namespace ZFramework.Managers
 {
-    public class OldInputManager : MonoBehaviour ,IManager
+    public class OldInputManager : MonoSingleton<OldInputManager>, IManager
     {
-        // Start is called before the first frame update
-        void Start()
+        /// <summary>
+        /// 获得横向轴的输入
+        /// </summary>
+        /// <returns>返回一个横向的Vector2向量</returns>
+        public Vector2 GetHorizontalMove()
         {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
+            return new Vector2(Input.GetAxis("Horizontal"), 0);
         }
 
         public void RegisterIntoDict()

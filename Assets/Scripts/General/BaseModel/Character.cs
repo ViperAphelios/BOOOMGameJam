@@ -49,7 +49,7 @@ namespace General
             injuredCurrentTime = injuredDuration;
         }
 
-        void Start()
+        protected virtual void Start()
         {
             onHealthChange?.Invoke(this);
         }
