@@ -6,9 +6,11 @@ namespace Player
     public class PlayerModel : Character
     {
         [Header("角色额外属性")]
-        public float currentSpeed;
-
+        // 跳跃相关
         public float jumpForce;
+
+        public int maxExtraJumpNum;
+        public int remainingJumpNum;
 
         [Header("角色额外状态")]
         public bool isClimbUp;
@@ -20,7 +22,12 @@ namespace Player
         protected override void Start()
         {
             base.Start();
-            currentSpeed = speed;
+            if (maxExtraJumpNum == 0)
+            {
+                maxExtraJumpNum = 2;
+            }
+
+            remainingJumpNum = maxExtraJumpNum;
         }
     }
 }
