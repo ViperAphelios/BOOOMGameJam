@@ -6,6 +6,11 @@ namespace ZFramework.Managers
 {
     public class OldInputManager : MonoSingleton<OldInputManager>, IManager
     {
+        public void RegisterIntoDict()
+        {
+            GameArchitecture.RegisterManager(this);
+        }
+
         /// <summary>
         /// 获得横向轴的输入
         /// </summary>
@@ -15,9 +20,9 @@ namespace ZFramework.Managers
             return new Vector2(Input.GetAxis("Horizontal"), 0);
         }
 
-        public void RegisterIntoDict()
+        public bool GetJumpInput()
         {
-            GameArchitecture.RegisterManager(this);
+            return Input.GetButton("Jump");
         }
     }
 }

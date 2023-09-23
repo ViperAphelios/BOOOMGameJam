@@ -1,3 +1,4 @@
+using Micosmo.SensorToolkit;
 using UnityEngine;
 using UnityEngine.Events;
 using ZFramework.Interfaces;
@@ -19,7 +20,11 @@ namespace Player
         private Rigidbody2D mRb;
         private PlayerModel mModel;
 
-        private UnityAction mOnMove;
+        // Jump的委托事件
+        private UnityAction mOnJump;
+
+        [Header("传感器")]
+        public RaySensor2D onGroundSensor;
 
         // 和该脚本在同一个物体上的类引用
         private void Awake()
@@ -45,9 +50,10 @@ namespace Player
         {
             InputCheck();
             CorrectPlayerDirection();
+            SensorPulseAndCheck();
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             CancelAction();
         }
@@ -58,10 +64,24 @@ namespace Player
         }
 
         public void InitAction()
-        { }
+        {
+            mOnJump += Jump;
+        }
 
         public void CancelAction()
-        { }
+        {
+            mOnJump -= Jump;
+        }
+
+        /// <summary>
+        /// 传感器统一发射脉冲和检测结果
+        /// </summary>
+        private void SensorPulseAndCheck()
+        {
+            // 角色是否在地面上
+            onGroundSensor.Pulse();
+            mModel.isOnGround = onGroundSensor.GetNearestDetection();
+        }
 
         /// <summary>
         /// 修正玩家的方向，包括角色素材朝向和前向方向
@@ -87,13 +107,27 @@ namespace Player
                 mRb.velocity.y);
         }
 
+        private void Jump()
+        {
+            mRb.velocity = new Vector2(mRb.velocity.x, 0);
+            mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
+        }
+
         /// <summary>
         /// 玩家按键输入，优先使用OldInputManager单例类封装
         /// </summary>
         private void InputCheck()
         {
+            // 横向移动输入
             inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove();
             mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.3f;
+
+            // 跳跃输入
+            mModel.isJump = OldInputManager.Instance.GetJumpInput();
+            if (mModel.isJump && mModel.isOnGround)
+            {
+                mOnJump?.Invoke();
+            }
         }
     }
 }
