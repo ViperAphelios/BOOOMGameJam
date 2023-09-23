@@ -17,6 +17,8 @@ namespace General
         [Header("当前属性值")]
         public float currentHealth;
 
+        public float currentSpeed;
+
         [Header("基本状态")]
         public bool isOnGround;
 
@@ -46,6 +48,7 @@ namespace General
         protected virtual void Awake()
         {
             currentHealth = maxHealth;
+            currentSpeed = speed;
             injuredCurrentTime = injuredDuration;
         }
 

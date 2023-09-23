@@ -10,6 +10,7 @@ namespace Player
     {
         public IController Controller => this;
 
+
         // 前向方向
         public Vector2 forwardDirection;
 
@@ -111,6 +112,9 @@ namespace Player
         {
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
             mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
+            mModel.remainingJumpNum -= 1;
+
+            // Debug.Log("跳跃一次");
         }
 
         /// <summary>
@@ -119,15 +123,31 @@ namespace Player
         private void InputCheck()
         {
             // 横向移动输入
-            inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove();
+            inputHorizontalValue = OldInputManager.GetHorizontalMove();
             mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.3f;
 
             // 跳跃输入
-            mModel.isJump = OldInputManager.Instance.GetJumpInput();
-            if (mModel.isJump && mModel.isOnGround)
+            if (OldInputManager.GetJumpInput())
             {
-                mOnJump?.Invoke();
+                // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
+                if ((mModel.isJump && mModel.remainingJumpNum > 0) || (mModel.isOnGround && !mModel.isJump))
+                {
+                    mModel.isJump = true;
+                    mOnJump?.Invoke();
+                }
             }
         }
+
+    #region UnityEvent|Inspector面板挂载的方法
+
+        // 玩家着陆到地面，RaySensor物体触发
+        public void PlayerLandingOnGround(GameObject obj, Sensor sensor)
+        {
+            if (mModel == null) return;
+            mModel.isJump = false;
+            mModel.remainingJumpNum = mModel.maxExtraJumpNum;
+        }
+
+    #endregion
     }
 }
