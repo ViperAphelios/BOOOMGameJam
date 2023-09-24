@@ -5,7 +5,7 @@ namespace Player
 {
     public class PlayerModel : Character
     {
-        [Header("角色额外参数")]
+        [Header("跳跃和奔跑")]
         // 跳跃相关
         public float jumpForce;
 
@@ -16,13 +16,20 @@ namespace Player
         // 跑步
         public float runSpeed;
 
+        [Header("冲刺相关")]
         // 冲刺(闪避)
         public float dashSpeed;
+
         public float dashTimeSecond;
+        public float dashCoolDown;
+        public bool canDash;
+        public bool dashCanInvincible;
         public bool isDashInvincible;
 
+        [Header("土狼时间")]
         // 土狼时间,帧
         public int maxCoyoteTimeFrame;
+
         public int currentCoyoteTimeFrame;
 
 
@@ -32,6 +39,7 @@ namespace Player
         public bool isWalk;
         public bool isRun;
         public bool isJump;
+        public bool isDash;
 
         protected override void Start()
         {
@@ -56,6 +64,19 @@ namespace Player
             {
                 maxCoyoteTimeFrame = 3;
             }
+
+            // 冲刺相关参数默认
+            if (dashTimeSecond <= 0)
+            {
+                dashTimeSecond = 0.15f;
+            }
+
+            if (dashCoolDown <= 0)
+            {
+                dashCoolDown = 2f;
+            }
+
+            canDash = true;
         }
     }
 }

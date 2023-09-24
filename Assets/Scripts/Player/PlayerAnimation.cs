@@ -17,6 +17,7 @@ namespace Player
         private static readonly int IsJump = Animator.StringToHash("isJump");
         private static readonly int VelocityY = Animator.StringToHash("velocityY");
         private static readonly int IsRun = Animator.StringToHash("isRun");
+        private static readonly int IsDash = Animator.StringToHash("isDash");
 
         private void Awake()
         {
@@ -42,6 +43,7 @@ namespace Player
             mAnimator.SetBool(IsWalk, mModel.isWalk);
             mAnimator.SetBool(IsJump, mModel.isJump);
             mAnimator.SetBool(IsRun, mModel.isRun);
+            mAnimator.SetBool(IsDash, mModel.isDash);
             mAnimator.SetFloat(VelocityY, mRb.velocity.y);
         }
     }

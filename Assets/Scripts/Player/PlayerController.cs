@@ -1,6 +1,5 @@
-using System;
-using System.Collections;
 using Micosmo.SensorToolkit;
+using Timers;
 using UnityEngine;
 using UnityEngine.Events;
 using ZFramework.Interfaces;
@@ -27,8 +26,9 @@ namespace Player
         private Rigidbody2D mRb;
         private PlayerModel mModel;
 
-        // Jump的委托事件
+        // Jump的委托，Update检测按键输入
         private UnityAction mOnJump;
+
 
         [Header("传感器")]
         public RaySensor2D onGroundSensor;
@@ -50,8 +50,18 @@ namespace Player
         private void FixedUpdate()
         {
             CoyoteTimeCounter();
-            Move();
-            Dash();
+            // 非冲刺状态才执行普通移动
+            if (!mModel.isDash)
+            {
+                Move();
+            }
+            else
+            {
+                if (!mModel.canDash)
+                {
+                    Dash();
+                }
+            }
         }
 
         // 顺序-土狼时间计时-采集按键-修正方向-脉冲检测
@@ -130,8 +140,11 @@ namespace Player
                 mRb.velocity.y);
         }
 
+        // 冲刺(闪避)
         private void Dash()
-        { }
+        {
+            mRb.velocity = new Vector2(forwardDirection.x * mModel.dashSpeed * Time.fixedDeltaTime, 0);
+        }
 
         private void Jump()
         {
@@ -163,7 +176,7 @@ namespace Player
             mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
             // 跑动输入
-            mModel.isRun = OldInputManager.Instance.GetStartRunInput();
+            mModel.isRun = OldInputManager.GetStartRunInput();
 
             // 跳跃输入
             if (OldInputManager.GetJumpInput())
@@ -180,6 +193,34 @@ namespace Player
                 {
                     mOnJump?.Invoke();
                 }
+            }
+
+            // 冲刺输入
+            if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash)
+            {
+                mModel.isDash = true;
+                mModel.canDash = false;
+
+                // 如果解锁了冲刺无敌
+                if (mModel.dashCanInvincible)
+                {
+                    StartDashInvincible();
+                }
+
+                // 0.15秒后停止dash
+                TimersManager.SetTimer(this, 0.15f, () =>
+                {
+                    mModel.isDash = false;
+                    EndDashInvincible();
+                    Debug.Log("结束冲刺,结束冲刺无敌");
+                });
+
+                // 2秒后才可以再次dash
+                TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
+                {
+                    mModel.canDash = true;
+                    Debug.Log("可以再次冲刺");
+                });
             }
         }
 
@@ -251,6 +292,24 @@ namespace Player
                     inputHorizontalValue = new Vector2(0, 0);
                 }
             }
+        }
+
+        /// <summary>
+        /// 开始冲刺无敌
+        /// </summary>
+        private void StartDashInvincible()
+        {
+            mModel.isDashInvincible = true;
+            // Todo: 冲刺无敌的操作
+        }
+
+        /// <summary>
+        /// 结束冲刺无敌
+        /// </summary>
+        private void EndDashInvincible()
+        {
+            mModel.isDashInvincible = false;
+            // TODO: 结束无敌状态，恢复正常
         }
 
 

@@ -19,12 +19,12 @@ namespace ZFramework.Managers
         {
             return new Vector2(Input.GetAxisRaw("Horizontal"), 0);
         }
-        
+
         /// <summary>
         /// 获得想要开始跑步行为的输入，可以在ProjectSetting中修改按键
         /// </summary>
         /// <returns></returns>
-        public bool GetStartRunInput()
+        public static bool GetStartRunInput()
         {
             return Input.GetButton("Run");
         }
@@ -36,6 +36,11 @@ namespace ZFramework.Managers
         public static bool GetJumpInput()
         {
             return Input.GetButtonDown("Jump");
+        }
+
+        public bool GetDashInput()
+        {
+            return Input.GetButtonDown("Dash");
         }
     }
 }
