@@ -22,6 +22,9 @@ namespace Player
 
         public bool endDecelerate;
 
+        [Header("是否有跳跃缓存")]
+        public bool haveJumpCache;
+
         private PlayerAnimation mPlayerAnimation;
         private Rigidbody2D mRb;
         private PlayerModel mModel;
@@ -32,6 +35,8 @@ namespace Player
 
         [Header("传感器")]
         public RaySensor2D onGroundSensor;
+
+        public RaySensor2D cacheJumpSensor;
 
         // 和该脚本在同一个物体上的类引用
         private void Awake()
@@ -93,13 +98,19 @@ namespace Player
         }
 
         /// <summary>
-        /// 传感器统一发射脉冲和检测结果
+        /// 传感器统一发射脉冲和检测结果,每帧进行的传感器
         /// </summary>
         private void SensorPulseAndCheck()
         {
             // 角色是否在地面上
             onGroundSensor.Pulse();
             mModel.isOnGround = onGroundSensor.GetNearestDetection();
+
+            // 如果有缓存直接触发
+            if (haveJumpCache && mModel.isOnGround)
+            {
+                mOnJump?.Invoke();
+            }
         }
 
         /// <summary>
@@ -148,6 +159,7 @@ namespace Player
 
         private void Jump()
         {
+            haveJumpCache = false;
             mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
             mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
@@ -181,6 +193,14 @@ namespace Player
             // 跳跃输入
             if (OldInputManager.GetJumpInput())
             {
+                cacheJumpSensor.Pulse();
+
+                // 检查是否有跳跃缓存,按跳跃的时候才检查一次
+                if (cacheJumpSensor.GetNearestDetection())
+                {
+                    haveJumpCache = true;
+                }
+
                 // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
                 if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump) ||
                     (mModel.isOnGround && !mModel.isJump))
