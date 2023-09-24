@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using Micosmo.SensorToolkit;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,6 +17,11 @@ namespace Player
 
         // Input的值
         public Vector2 inputHorizontalValue;
+
+        [Header("起步加速和结束减速")]
+        public bool startAcceleration;
+
+        public bool endDecelerate;
 
         private PlayerAnimation mPlayerAnimation;
         private Rigidbody2D mRb;
@@ -105,6 +112,10 @@ namespace Player
 
         private void Move()
         {
+            // 起步加速和结束减速检测
+            EndMoveCheck();
+            StartMoveCheck();
+
             // 调整速度
             if (mModel.isWalk && mModel.isRun)
             {
@@ -138,7 +149,17 @@ namespace Player
         private void InputCheck()
         {
             // 横向移动输入
-            inputHorizontalValue = OldInputManager.GetHorizontalMove();
+            if (inputHorizontalValue != new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) < 1)
+            {
+                endDecelerate = true;
+            }
+
+            if (inputHorizontalValue == new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) > 0)
+            {
+                startAcceleration = true;
+                inputHorizontalValue = OldInputManager.GetHorizontalMove() * 1 / 6;
+            }
+
             mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
             // 跑动输入
@@ -174,28 +195,64 @@ namespace Player
         }
 
         /// <summary>
-        /// 移动加速计时器
+        /// 起步加速
         /// </summary>
-        private void StartMoveCounter()
+        private void StartMoveCheck()
         {
-            if (Mathf.Abs(mRb.velocity.x) <= 0.1)
+            // 检查是否在起步阶段
+            if (!startAcceleration || !(Mathf.Abs(inputHorizontalValue.x) < 1)) return;
+            if (inputHorizontalValue.x < 0)
             {
-                mModel.currentMoveIncreaseFrame = mModel.maxStartMoveIncreaseTimeFrame;
+                inputHorizontalValue += new Vector2(-1f / 6f, 0);
             }
-            else
+
+            if (inputHorizontalValue.x > 0)
             {
-                mModel.currentMoveIncreaseFrame -= 1;
+                inputHorizontalValue += new Vector2(1f / 6f, 0);
+            }
+
+            // 限制最大值
+            if (inputHorizontalValue.x <= -1)
+            {
+                startAcceleration = false;
+                inputHorizontalValue = new Vector2(-1, 0);
+            }
+
+            if (inputHorizontalValue.x >= 1)
+            {
+                startAcceleration = false;
+                inputHorizontalValue = new Vector2(1, 0);
             }
         }
 
         /// <summary>
-        /// 移动减速计时器
+        /// 结束减速
         /// </summary>
-        private void EndMoveCounter()
+        private void EndMoveCheck()
         {
-            if (Mathf.Abs(mRb.velocity.x) <= 0.1)
-            { }
+            // 检查是否在减速阶段
+            if (!endDecelerate) return;
+            if (inputHorizontalValue.x < 0)
+            {
+                inputHorizontalValue += new Vector2(1f / 3f, 0);
+                if (inputHorizontalValue.x > 0)
+                {
+                    endDecelerate = false;
+                    inputHorizontalValue = new Vector2(0, 0);
+                }
+            }
+
+            if (inputHorizontalValue.x > 0)
+            {
+                inputHorizontalValue += new Vector2(-1f / 3f, 0);
+                if (inputHorizontalValue.x < 0)
+                {
+                    endDecelerate = false;
+                    inputHorizontalValue = new Vector2(0, 0);
+                }
+            }
         }
+
 
     #region UnityEvent|Inspector面板挂载的方法
 

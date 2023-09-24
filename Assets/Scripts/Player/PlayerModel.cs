@@ -19,18 +19,12 @@ namespace Player
         // 冲刺(闪避)
         public float dashSpeed;
         public float dashTimeSecond;
+        public bool isDashInvincible;
 
         // 土狼时间,帧
         public int maxCoyoteTimeFrame;
         public int currentCoyoteTimeFrame;
 
-        // 移动起步增速时间,帧
-        public int maxStartMoveIncreaseTimeFrame;
-        public int currentMoveIncreaseFrame;
-
-        // 停止移动减速计时,帧
-        public int maxEndMoveDecreaseTimeFrame;
-        public int currentMoveDecreaseFrame;
 
         [Header("角色额外状态")]
         public bool isClimbUp;
@@ -61,18 +55,6 @@ namespace Player
             if (maxCoyoteTimeFrame <= 0)
             {
                 maxCoyoteTimeFrame = 3;
-            }
-
-            // 移动起步增速参数默认
-            if (maxStartMoveIncreaseTimeFrame <= 0)
-            {
-                maxStartMoveIncreaseTimeFrame = 6;
-            }
-
-            // 移动结束减速参数默认
-            if (maxEndMoveDecreaseTimeFrame <= 0)
-            {
-                maxEndMoveDecreaseTimeFrame = 3;
             }
         }
     }
