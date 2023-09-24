@@ -45,16 +45,13 @@ namespace General
 
         public UnityEvent<Character> onHealthChange;
 
-        protected virtual void Awake()
-        {
-            currentHealth = maxHealth;
-            currentSpeed = normalSpeed;
-            injuredCurrentTime = injuredDuration;
-        }
 
         protected virtual void Start()
         {
             onHealthChange?.Invoke(this);
+            currentHealth = maxHealth;
+            currentSpeed = normalSpeed;
+            injuredCurrentTime = injuredDuration;
         }
 
         /// <summary>
