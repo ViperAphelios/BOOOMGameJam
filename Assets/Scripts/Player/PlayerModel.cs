@@ -54,13 +54,25 @@ namespace Player
             // 跑步参数默认
             if (runSpeed <= 0)
             {
-                runSpeed = 1.5f * speed;
+                runSpeed = 1.5f * normalSpeed;
             }
 
             // 土狼时间参数默认
             if (maxCoyoteTimeFrame <= 0)
             {
                 maxCoyoteTimeFrame = 3;
+            }
+
+            // 移动起步增速参数默认
+            if (maxStartMoveIncreaseTimeFrame <= 0)
+            {
+                maxStartMoveIncreaseTimeFrame = 6;
+            }
+
+            // 移动结束减速参数默认
+            if (maxEndMoveDecreaseTimeFrame <= 0)
+            {
+                maxEndMoveDecreaseTimeFrame = 3;
             }
         }
     }

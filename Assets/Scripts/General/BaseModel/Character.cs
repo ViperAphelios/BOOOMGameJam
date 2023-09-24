@@ -12,7 +12,7 @@ namespace General
         public float maxHealth;
 
         public float attackDamage;
-        public float speed;
+        public float normalSpeed;
 
         [Header("当前属性值")]
         public float currentHealth;
@@ -48,7 +48,7 @@ namespace General
         protected virtual void Awake()
         {
             currentHealth = maxHealth;
-            currentSpeed = speed;
+            currentSpeed = normalSpeed;
             injuredCurrentTime = injuredDuration;
         }
 

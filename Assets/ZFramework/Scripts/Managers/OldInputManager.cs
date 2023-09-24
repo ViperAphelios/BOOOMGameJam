@@ -17,7 +17,7 @@ namespace ZFramework.Managers
         /// <returns>返回一个横向的Vector2向量</returns>
         public static Vector2 GetHorizontalMove()
         {
-            return new Vector2(Input.GetAxis("Horizontal"), 0);
+            return new Vector2(Input.GetAxisRaw("Horizontal"), 0);
         }
         
         /// <summary>

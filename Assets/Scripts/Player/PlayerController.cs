@@ -112,7 +112,7 @@ namespace Player
             }
             else
             {
-                mModel.currentSpeed = mModel.speed;
+                mModel.currentSpeed = mModel.normalSpeed;
             }
 
             mRb.velocity = new Vector2(inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime,
@@ -139,7 +139,7 @@ namespace Player
         {
             // 横向移动输入
             inputHorizontalValue = OldInputManager.GetHorizontalMove();
-            mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.3f;
+            mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
             // 跑动输入
             mModel.isRun = OldInputManager.Instance.GetStartRunInput();
@@ -172,13 +172,29 @@ namespace Player
                 mModel.currentCoyoteTimeFrame -= 1;
             }
         }
-        
+
         /// <summary>
         /// 移动加速计时器
         /// </summary>
         private void StartMoveCounter()
         {
-            
+            if (Mathf.Abs(mRb.velocity.x) <= 0.1)
+            {
+                mModel.currentMoveIncreaseFrame = mModel.maxStartMoveIncreaseTimeFrame;
+            }
+            else
+            {
+                mModel.currentMoveIncreaseFrame -= 1;
+            }
+        }
+
+        /// <summary>
+        /// 移动减速计时器
+        /// </summary>
+        private void EndMoveCounter()
+        {
+            if (Mathf.Abs(mRb.velocity.x) <= 0.1)
+            { }
         }
 
     #region UnityEvent|Inspector面板挂载的方法
