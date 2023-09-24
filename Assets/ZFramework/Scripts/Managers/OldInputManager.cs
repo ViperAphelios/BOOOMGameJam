@@ -19,6 +19,15 @@ namespace ZFramework.Managers
         {
             return new Vector2(Input.GetAxis("Horizontal"), 0);
         }
+        
+        /// <summary>
+        /// 获得想要开始跑步行为的输入，可以在ProjectSetting中修改按键
+        /// </summary>
+        /// <returns></returns>
+        public bool GetStartRunInput()
+        {
+            return Input.GetButton("Run");
+        }
 
         /// <summary>
         /// 获得跳跃行为的输入，可以在ProjectSetting中修改按键

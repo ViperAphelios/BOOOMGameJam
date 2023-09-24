@@ -10,7 +10,6 @@ namespace Player
     {
         public IController Controller => this;
 
-
         // 前向方向
         public Vector2 forwardDirection;
 
@@ -43,10 +42,12 @@ namespace Player
 
         private void FixedUpdate()
         {
+            CoyoteTimeCounter();
             Move();
+            Dash();
         }
 
-        // 顺序-采集按键-修正方向
+        // 顺序-土狼时间计时-采集按键-修正方向-脉冲检测
         private void Update()
         {
             InputCheck();
@@ -104,12 +105,26 @@ namespace Player
 
         private void Move()
         {
+            // 调整速度
+            if (mModel.isWalk && mModel.isRun)
+            {
+                mModel.currentSpeed = mModel.runSpeed;
+            }
+            else
+            {
+                mModel.currentSpeed = mModel.speed;
+            }
+
             mRb.velocity = new Vector2(inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime,
                 mRb.velocity.y);
         }
 
+        private void Dash()
+        { }
+
         private void Jump()
         {
+            mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
             mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
             mModel.remainingJumpNum -= 1;
@@ -126,16 +141,44 @@ namespace Player
             inputHorizontalValue = OldInputManager.GetHorizontalMove();
             mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.3f;
 
+            // 跑动输入
+            mModel.isRun = OldInputManager.Instance.GetStartRunInput();
+
             // 跳跃输入
             if (OldInputManager.GetJumpInput())
             {
                 // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
-                if ((mModel.isJump && mModel.remainingJumpNum > 0) || (mModel.isOnGround && !mModel.isJump))
+                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump) ||
+                    (mModel.isOnGround && !mModel.isJump))
                 {
-                    mModel.isJump = true;
+                    mOnJump?.Invoke();
+                }
+
+                // 土狼时间，既不在地面，又不在跳跃状态，
+                if (mModel.currentCoyoteTimeFrame > 0 && !mModel.isJump && !mModel.isOnGround)
+                {
                     mOnJump?.Invoke();
                 }
             }
+        }
+
+        /// <summary>
+        /// 土狼状态计时器
+        /// </summary>
+        private void CoyoteTimeCounter()
+        {
+            if (!mModel.isOnGround && !mModel.isJump && mModel.currentCoyoteTimeFrame > 0)
+            {
+                mModel.currentCoyoteTimeFrame -= 1;
+            }
+        }
+        
+        /// <summary>
+        /// 移动加速计时器
+        /// </summary>
+        private void StartMoveCounter()
+        {
+            
         }
 
     #region UnityEvent|Inspector面板挂载的方法
@@ -143,9 +186,18 @@ namespace Player
         // 玩家着陆到地面，RaySensor物体触发
         public void PlayerLandingOnGround(GameObject obj, Sensor sensor)
         {
-            if (mModel == null) return;
+            if (mModel == null)
+            {
+                Debug.Log("没有Model");
+                return;
+            }
+
+            // 刷新可跳跃次数
             mModel.isJump = false;
             mModel.remainingJumpNum = mModel.maxExtraJumpNum;
+
+            // 再次接触地面，刷新土狼时间
+            mModel.currentCoyoteTimeFrame = mModel.maxCoyoteTimeFrame;
         }
 
     #endregion
