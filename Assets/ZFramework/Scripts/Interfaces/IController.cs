@@ -8,11 +8,11 @@ namespace ZFramework.Interfaces
     public interface IController
     {
         public IController Controller { get; }
-        
+
         /// <summary>
         ///     MVC模式，Controller需要获得Model
         /// </summary>
-        public T GetModel<T>(GameObject obj)
+        public T GetModel<T>(GameObject obj) where T : IModel
         {
             return obj.GetComponent<T>();
         }

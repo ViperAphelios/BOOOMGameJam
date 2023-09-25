@@ -23,18 +23,18 @@ namespace ZFramework
             LoadManagers();
         }
 
-        void Start()
+        private void Start()
         { }
 
         /// <summary>
         ///     输出检查当前的字典
         /// </summary>
-        void CheckDict()
+        private void CheckDict()
         {
             foreach (var keyValue in allManagersDict) Debug.Log("Key: " + keyValue.Key + " Value: " + keyValue.Value);
         }
 
-        void CreateManagersGameObject()
+        private void CreateManagersGameObject()
         {
             var obj = new GameObject
             {
@@ -43,7 +43,7 @@ namespace ZFramework
             managersGameObject = obj;
         }
 
-        void MakeSureEasySaveManager()
+        private void MakeSureEasySaveManager()
         {
             var es3Manager = Resources.Load("Easy Save 3/Easy Save 3 Manager");
             if (!FindObjectOfType<ES3ReferenceMgr>())
@@ -54,7 +54,9 @@ namespace ZFramework
         }
 
         void LoadManagers()
-        { }
+        {
+            CreateManager<OldInputManager>();
+        }
 
     #region Manager 架构私有方法
 
@@ -62,7 +64,7 @@ namespace ZFramework
         ///     创造新的Manager，通常位于架构的Awake
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        void CreateManager<T>() where T : MonoSingleton<T>, IManager
+        private void CreateManager<T>() where T : MonoSingleton<T>, IManager
         {
             if (FindObjectOfType<T>()) return;
             var obj = new GameObject();
