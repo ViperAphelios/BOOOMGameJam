@@ -27,6 +27,9 @@ namespace Player
         [Header("是否有跳跃缓存")]
         public bool haveJumpCache;
 
+        [Header("是否处于冲刺静止阶段")]
+        public bool isDashStationary;
+
         [Header("传感器")]
         public RaySensor2D onGroundSensor;
 
@@ -55,6 +58,13 @@ namespace Player
 
         private void FixedUpdate()
         {
+            // 如果在冲刺静止阶段，直接退出FixedUpdate
+            if (isDashStationary)
+            {
+                mRb.velocity = Vector2.zero;
+                return;
+            }
+
             // 非冲刺状态才执行普通移动
             if (!mModel.isDash)
             {
@@ -162,6 +172,12 @@ namespace Player
 
         private void Jump()
         {
+            // 如果在冲刺静止阶段，直接退出Jump
+            if (isDashStationary)
+            {
+                return;
+            }
+
             haveJumpCache = false;
             mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
@@ -247,27 +263,32 @@ namespace Player
         /// </summary>
         private void TryDash()
         {
+            isDashStationary = true;
             // 如果解锁了冲刺无敌
             if (mModel.dashCanInvincible)
             {
                 StartDashInvincible();
             }
 
-            // 0.15秒后停止dash
-            TimersManager.SetTimer(this, 0.15f, () =>
+            // 停止0.06s之后，进行冲刺计时，才进行冲刺操作
+            TimersManager.SetTimer(this, 0.06f, () =>
             {
-                mModel.isDash = false;
-                EndDashInvincible();
+                isDashStationary = false;
+                // 0.15秒后停止dash
+                TimersManager.SetTimer(this, 0.15f, () =>
+                {
+                    mModel.isDash = false;
+                    EndDashInvincible();
 
-                Debug.Log("结束冲刺,结束冲刺无敌");
-            });
+                    Debug.Log("结束冲刺,结束冲刺无敌");
+                });
+                // 2秒后才可以再次dash
+                TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
+                {
+                    mModel.canDash = true;
 
-            // 2秒后才可以再次dash
-            TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
-            {
-                mModel.canDash = true;
-
-                Debug.Log("可以再次冲刺");
+                    Debug.Log("可以再次冲刺");
+                });
             });
         }
 

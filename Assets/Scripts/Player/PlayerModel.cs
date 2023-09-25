@@ -13,8 +13,6 @@ namespace Player
         public int remainingJumpNum;
         public bool canSecondJump;
 
-        // 跑步 , 移除跑步
-        // public float runSpeed;
         [Header("起步加速和静止减速时间")]
         [Range(0, 0.5f)]
         public float startAccelerationTime;
