@@ -44,8 +44,10 @@ namespace General
         public UnityEvent onDie;
 
         public UnityEvent<Character> onHealthChange;
-
-
+        
+        /// <summary>
+        /// 在Start中初始化默认值，给后期的Awake设置值留空间
+        /// </summary>
         protected virtual void Start()
         {
             onHealthChange?.Invoke(this);

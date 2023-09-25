@@ -15,6 +15,12 @@ namespace Player
 
         // 跑步 , 移除跑步
         // public float runSpeed;
+        [Header("起步加速和静止减速时间")]
+        [Range(0, 0.5f)]
+        public float startAccelerationTime;
+
+        [Range(0, 0.3f)]
+        public float endDecelerateTime;
 
         [Header("冲刺相关")]
         public float dashSpeed;
@@ -70,6 +76,17 @@ namespace Player
             }
 
             canDash = true;
+
+            // 加速时间和减速时间参数默认
+            if (startAccelerationTime <= 0)
+            {
+                startAccelerationTime = 0.12f;
+            }
+
+            if (endDecelerateTime <= 0)
+            {
+                endDecelerateTime = 0.06f;
+            }
         }
     }
 }

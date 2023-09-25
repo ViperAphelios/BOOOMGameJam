@@ -21,26 +21,24 @@ namespace Player
         public bool hasAccelerationAndDecelerate;
 
         public bool isDebugAccelerationAndDecelerate;
-
         public bool startAcceleration;
-
         public bool endDecelerate;
 
         [Header("是否有跳跃缓存")]
         public bool haveJumpCache;
-
-        private PlayerAnimation mPlayerAnimation;
-        private Rigidbody2D mRb;
-        private PlayerModel mModel;
-
-        // Jump的委托，Update检测按键输入
-        private UnityAction mOnJump;
 
         [Header("传感器")]
         public RaySensor2D onGroundSensor;
 
         public RaySensor2D cacheJumpSensor;
         public RangeSensor2D coyoteTimeSensor;
+
+        private Rigidbody2D mRb;
+        private PlayerModel mModel;
+
+        // Jump的委托，Update检测按键输入
+        private UnityAction mOnJump;
+
 
         // 和该脚本在同一个物体上的类引用
         private void Awake()
@@ -53,7 +51,6 @@ namespace Player
         private void Start()
         {
             InitAction();
-            mPlayerAnimation = GetComponentInChildren<PlayerAnimation>();
         }
 
         private void FixedUpdate()
@@ -187,8 +184,8 @@ namespace Player
                     Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) < 1)
                 {
                     endDecelerate = true;
-                    // 防卡死机制，这个减速状态最多保持0.5s
-                    TimersManager.SetTimer(this, 0.5f, () => { endDecelerate = false; });
+                    // 防卡死机制，这个减速状态最多保持0.51s
+                    TimersManager.SetTimer(this, 0.51f, () => { endDecelerate = false; });
                 }
 
                 if (inputHorizontalValue == new Vector2(0, 0) &&
@@ -196,9 +193,10 @@ namespace Player
                     && !endDecelerate)
                 {
                     startAcceleration = true;
-                    // 防卡死机制，这个加速状态最多保持0.5s
-                    TimersManager.SetTimer(this, 0.5f, () => { startAcceleration = false; });
-                    inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 / 6;
+                    // 防卡死机制，这个加速状态最多保持0.51s
+                    TimersManager.SetTimer(this, 0.51f, () => { startAcceleration = false; });
+                    inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 /
+                                           (mModel.startAccelerationTime * 50f);
                 }
             }
             // 不进行移动加速和停止减速
@@ -260,6 +258,7 @@ namespace Player
             {
                 mModel.isDash = false;
                 EndDashInvincible();
+
                 Debug.Log("结束冲刺,结束冲刺无敌");
             });
 
@@ -267,6 +266,7 @@ namespace Player
             TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
             {
                 mModel.canDash = true;
+
                 Debug.Log("可以再次冲刺");
             });
         }
@@ -280,12 +280,12 @@ namespace Player
             if (!startAcceleration || !(Mathf.Abs(inputHorizontalValue.x) < 1)) return;
             if (inputHorizontalValue.x < 0)
             {
-                inputHorizontalValue += new Vector2(-1f / 6f, 0);
+                inputHorizontalValue += new Vector2(-1f / (mModel.startAccelerationTime * 50f), 0);
             }
 
             if (inputHorizontalValue.x > 0)
             {
-                inputHorizontalValue += new Vector2(1f / 6f, 0);
+                inputHorizontalValue += new Vector2(1f / (mModel.startAccelerationTime * 50f), 0);
             }
 
             // 限制最大值
@@ -316,7 +316,7 @@ namespace Player
             if (!endDecelerate) return;
             if (inputHorizontalValue.x < 0)
             {
-                inputHorizontalValue += new Vector2(1f / 3f, 0);
+                inputHorizontalValue += new Vector2(1f / (mModel.endDecelerateTime * 50f), 0);
                 if (isDebugAccelerationAndDecelerate)
                 {
                     Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
@@ -331,7 +331,7 @@ namespace Player
 
             if (inputHorizontalValue.x > 0)
             {
-                inputHorizontalValue += new Vector2(-1f / 3f, 0);
+                inputHorizontalValue += new Vector2(-1f / (mModel.endDecelerateTime * 50f), 0);
                 if (isDebugAccelerationAndDecelerate)
                 {
                     Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
