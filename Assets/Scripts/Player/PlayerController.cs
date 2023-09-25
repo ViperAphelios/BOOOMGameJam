@@ -14,8 +14,10 @@ namespace Player
         // 前向方向
         public Vector2 forwardDirection;
 
-        // Input的值
+        // Input轴向输入的值
         public Vector2 inputHorizontalValue;
+        public Vector2 inputVerticalValue;
+
 
         [Header("起步加速和结束减速")]
         public bool hasAccelerationAndDecelerate;
@@ -65,6 +67,12 @@ namespace Player
                 return;
             }
 
+            if (mModel.isAttack)
+            {
+                mRb.velocity = new Vector2(0, mRb.velocity.y);
+                return;
+            }
+
             // 非冲刺状态才执行普通移动
             if (!mModel.isDash)
             {
@@ -77,6 +85,7 @@ namespace Player
                     Dash();
                 }
             }
+
 
             LimitMaxVelocityY();
         }
@@ -256,6 +265,33 @@ namespace Player
 
                 TryDash();
             }
+
+            if (OldInputManager.Instance.GetAttackInput() && !mModel.isDash && !mModel.isAttack)
+            {
+                TryAttack();
+            }
+        }
+
+        // 尝试攻击，攻击的触发逻辑
+        private void TryAttack()
+        {
+            mModel.isAttack = true;
+            inputVerticalValue = OldInputManager.Instance.GetVerticalInput();
+            if (inputVerticalValue != Vector2.zero)
+            {
+                // TODO: 将执行不同方向的特殊攻击 
+            }
+            else
+            {
+                // TODO: 执行攻击
+                Attack();
+            }
+        }
+
+        private void Attack()
+        {
+            Debug.Log("攻击一次");
+            mModel.isAttack = false;
         }
 
         /// <summary>
@@ -281,15 +317,15 @@ namespace Player
                     EndDashInvincible();
 
                     Debug.Log("结束冲刺,结束冲刺无敌");
-                });
+                }, false, false);
                 // 2秒后才可以再次dash
                 TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
                 {
                     mModel.canDash = true;
 
                     Debug.Log("可以再次冲刺");
-                });
-            });
+                }, false, false);
+            }, false, false);
         }
 
         /// <summary>
