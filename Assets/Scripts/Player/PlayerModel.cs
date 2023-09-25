@@ -1,4 +1,5 @@
 using General;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Player
@@ -25,17 +26,17 @@ namespace Player
         public bool isDashInvincible;
 
         [Header("土狼时间")]
-        // 土狼时间,帧
-        public int maxCoyoteTimeFrame;
+        // 土狼时间,秒
+        public float maxCoyoteTime;
 
-        public int currentCoyoteTimeFrame;
+        public bool isCoyote;
+        //public float currentCoyoteTimeFrame;
 
 
         [Header("角色额外状态")]
         public bool isClimbUp;
 
         public bool isMove;
-        public bool isRun;
         public bool isJump;
         public bool isDash;
 
@@ -52,9 +53,9 @@ namespace Player
             remainingJumpNum = maxExtraJumpNum;
 
             // 土狼时间参数默认
-            if (maxCoyoteTimeFrame <= 0)
+            if (maxCoyoteTime <= 0)
             {
-                maxCoyoteTimeFrame = 3;
+                maxCoyoteTime = 0.15f;
             }
 
             // 冲刺相关参数默认

@@ -36,11 +36,11 @@ namespace Player
         // Jump的委托，Update检测按键输入
         private UnityAction mOnJump;
 
-
         [Header("传感器")]
         public RaySensor2D onGroundSensor;
 
         public RaySensor2D cacheJumpSensor;
+        public RangeSensor2D coyoteTimeSensor;
 
         // 和该脚本在同一个物体上的类引用
         private void Awake()
@@ -58,8 +58,6 @@ namespace Player
 
         private void FixedUpdate()
         {
-            CoyoteTimeCounter();
-
             // 非冲刺状态才执行普通移动
             if (!mModel.isDash)
             {
@@ -184,30 +182,29 @@ namespace Player
             // 如果移动加速和停止减速
             if (hasAccelerationAndDecelerate)
             {
-                if (inputHorizontalValue != new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) < 1)
+                if (inputHorizontalValue != new Vector2(0, 0) &&
+                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) < 1)
                 {
                     endDecelerate = true;
                 }
 
-                if (inputHorizontalValue == new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) > 0)
+                if (inputHorizontalValue == new Vector2(0, 0) &&
+                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) > 0)
                 {
                     startAcceleration = true;
-                    inputHorizontalValue = OldInputManager.GetHorizontalMove() * 1 / 6;
+                    inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 / 6;
                 }
             }
             // 不进行移动加速和停止减速
             else
             {
-                inputHorizontalValue = OldInputManager.GetHorizontalMove();
+                inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove();
             }
 
             mModel.isMove = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
-            // 跑动输入
-            mModel.isRun = OldInputManager.GetStartRunInput();
-
             // 跳跃输入
-            if (OldInputManager.GetJumpInput())
+            if (OldInputManager.Instance.GetJumpInput())
             {
                 cacheJumpSensor.Pulse();
 
@@ -225,7 +222,7 @@ namespace Player
                 }
 
                 // 土狼时间，既不在地面，又不在跳跃状态，
-                if (mModel.currentCoyoteTimeFrame > 0 && !mModel.isJump && !mModel.isOnGround)
+                if (mModel.isCoyote && !mModel.isJump && !mModel.isOnGround)
                 {
                     mOnJump?.Invoke();
                 }
@@ -237,38 +234,35 @@ namespace Player
                 mModel.isDash = true;
                 mModel.canDash = false;
 
-                // 如果解锁了冲刺无敌
-                if (mModel.dashCanInvincible)
-                {
-                    StartDashInvincible();
-                }
-
-                // 0.15秒后停止dash
-                TimersManager.SetTimer(this, 0.15f, () =>
-                {
-                    mModel.isDash = false;
-                    EndDashInvincible();
-                    Debug.Log("结束冲刺,结束冲刺无敌");
-                });
-
-                // 2秒后才可以再次dash
-                TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
-                {
-                    mModel.canDash = true;
-                    Debug.Log("可以再次冲刺");
-                });
+                TryDash();
             }
         }
 
         /// <summary>
-        /// 土狼状态计时器
+        /// 尝试冲刺，冲刺的触发逻辑，实际冲刺效果在FixedUpdate中的Dash()
         /// </summary>
-        private void CoyoteTimeCounter()
+        private void TryDash()
         {
-            if (!mModel.isOnGround && !mModel.isJump && mModel.currentCoyoteTimeFrame > 0)
+            // 如果解锁了冲刺无敌
+            if (mModel.dashCanInvincible)
             {
-                mModel.currentCoyoteTimeFrame -= 1;
+                StartDashInvincible();
             }
+
+            // 0.15秒后停止dash
+            TimersManager.SetTimer(this, 0.15f, () =>
+            {
+                mModel.isDash = false;
+                EndDashInvincible();
+                Debug.Log("结束冲刺,结束冲刺无敌");
+            });
+
+            // 2秒后才可以再次dash
+            TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
+            {
+                mModel.canDash = true;
+                Debug.Log("可以再次冲刺");
+            });
         }
 
         /// <summary>
@@ -386,9 +380,31 @@ namespace Player
             // 刷新可跳跃次数
             mModel.isJump = false;
             mModel.remainingJumpNum = mModel.maxExtraJumpNum;
+        }
 
-            // 再次接触地面，刷新土狼时间
-            mModel.currentCoyoteTimeFrame = mModel.maxCoyoteTimeFrame;
+        // 玩家离开地面的一瞬间检测是否属于土狼时间
+        public void PlayerIsCoyoteTime(GameObject obj, Sensor sensor)
+        {
+            if (mModel == null)
+            {
+                Debug.Log("没有Model");
+                return;
+            }
+
+            // 触发一次土狼时间传感器
+            coyoteTimeSensor.transform.localPosition = new Vector3(-0.3f, 0, 0);
+            coyoteTimeSensor.Pulse();
+            mModel.isCoyote = coyoteTimeSensor.GetNearestDetection();
+            if (mModel.isCoyote)
+            {
+                // 开始土狼时间计时,时间结束后触发土狼时间状态为假
+                TimersManager.SetTimer(this, mModel.maxCoyoteTime, () =>
+                {
+                    mModel.isCoyote = false;
+                    coyoteTimeSensor.transform.localPosition = new Vector3(0f, 0.5f, 0);
+                    coyoteTimeSensor.Pulse();
+                });
+            }
         }
 
     #endregion
