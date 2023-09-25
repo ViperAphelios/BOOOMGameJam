@@ -78,6 +78,7 @@ namespace Player
         // 顺序-土狼时间计时-采集按键-修正方向-脉冲检测
         private void Update()
         {
+            PreventMoveErrorJam();
             InputCheck();
             CorrectPlayerDirection();
             SensorPulseAndCheck();
@@ -186,12 +187,17 @@ namespace Player
                     Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) < 1)
                 {
                     endDecelerate = true;
+                    // 防卡死机制，这个减速状态最多保持0.5s
+                    TimersManager.SetTimer(this, 0.5f, () => { endDecelerate = false; });
                 }
 
                 if (inputHorizontalValue == new Vector2(0, 0) &&
-                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) > 0)
+                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) > 0
+                    && !endDecelerate)
                 {
                     startAcceleration = true;
+                    // 防卡死机制，这个加速状态最多保持0.5s
+                    TimersManager.SetTimer(this, 0.5f, () => { startAcceleration = false; });
                     inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 / 6;
                 }
             }
@@ -364,6 +370,19 @@ namespace Player
         {
             var velocity = mRb.velocity;
             mRb.velocity = new Vector2(velocity.x, Mathf.Max(velocity.y, -15f));
+        }
+
+        /// <summary>
+        /// 防止有人用极快的速度连续左右横跳，导致角色加速的同时又减速，直接卡住
+        /// </summary>
+        private void PreventMoveErrorJam()
+        {
+            if (endDecelerate && startAcceleration)
+            {
+                endDecelerate = false;
+                startAcceleration = false;
+                mRb.velocity = new Vector2(0f, mRb.velocity.y);
+            }
         }
 
     #region UnityEvent|Inspector面板挂载的方法
