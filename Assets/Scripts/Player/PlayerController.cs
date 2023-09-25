@@ -18,6 +18,10 @@ namespace Player
         public Vector2 inputHorizontalValue;
 
         [Header("起步加速和结束减速")]
+        public bool hasAccelerationAndDecelerate;
+
+        public bool isDebugAccelerationAndDecelerate;
+
         public bool startAcceleration;
 
         public bool endDecelerate;
@@ -55,6 +59,7 @@ namespace Player
         private void FixedUpdate()
         {
             CoyoteTimeCounter();
+
             // 非冲刺状态才执行普通移动
             if (!mModel.isDash)
             {
@@ -67,7 +72,10 @@ namespace Player
                     Dash();
                 }
             }
+
+            LimitMaxVelocityY();
         }
+
 
         // 顺序-土狼时间计时-采集按键-修正方向-脉冲检测
         private void Update()
@@ -133,16 +141,15 @@ namespace Player
 
         private void Move()
         {
-            // 起步加速和结束减速检测
-            EndMoveCheck();
-            StartMoveCheck();
+            if (hasAccelerationAndDecelerate)
+            {
+                // 起步加速和结束减速检测
+                EndMoveCheck();
+                StartMoveCheck();
+            }
 
             // 调整速度
-            if (mModel.isWalk && mModel.isRun)
-            {
-                mModel.currentSpeed = mModel.runSpeed;
-            }
-            else
+            if (mModel.isMove)
             {
                 mModel.currentSpeed = mModel.normalSpeed;
             }
@@ -174,18 +181,27 @@ namespace Player
         private void InputCheck()
         {
             // 横向移动输入
-            if (inputHorizontalValue != new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) < 1)
+            // 如果移动加速和停止减速
+            if (hasAccelerationAndDecelerate)
             {
-                endDecelerate = true;
+                if (inputHorizontalValue != new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) < 1)
+                {
+                    endDecelerate = true;
+                }
+
+                if (inputHorizontalValue == new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) > 0)
+                {
+                    startAcceleration = true;
+                    inputHorizontalValue = OldInputManager.GetHorizontalMove() * 1 / 6;
+                }
+            }
+            // 不进行移动加速和停止减速
+            else
+            {
+                inputHorizontalValue = OldInputManager.GetHorizontalMove();
             }
 
-            if (inputHorizontalValue == new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) > 0)
-            {
-                startAcceleration = true;
-                inputHorizontalValue = OldInputManager.GetHorizontalMove() * 1 / 6;
-            }
-
-            mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
+            mModel.isMove = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
             // 跑动输入
             mModel.isRun = OldInputManager.GetStartRunInput();
@@ -285,7 +301,10 @@ namespace Player
                 inputHorizontalValue = new Vector2(1, 0);
             }
 
-            Debug.Log("加速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+            if (isDebugAccelerationAndDecelerate)
+            {
+                Debug.Log("加速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+            }
         }
 
         /// <summary>
@@ -298,7 +317,11 @@ namespace Player
             if (inputHorizontalValue.x < 0)
             {
                 inputHorizontalValue += new Vector2(1f / 3f, 0);
-                Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                if (isDebugAccelerationAndDecelerate)
+                {
+                    Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                }
+
                 if (inputHorizontalValue.x > 0)
                 {
                     endDecelerate = false;
@@ -309,7 +332,11 @@ namespace Player
             if (inputHorizontalValue.x > 0)
             {
                 inputHorizontalValue += new Vector2(-1f / 3f, 0);
-                Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                if (isDebugAccelerationAndDecelerate)
+                {
+                    Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                }
+
                 if (inputHorizontalValue.x < 0)
                 {
                     endDecelerate = false;
@@ -336,6 +363,14 @@ namespace Player
             // TODO: 结束无敌状态，恢复正常
         }
 
+        /// <summary>
+        /// 限制最大下落速度
+        /// </summary>
+        private void LimitMaxVelocityY()
+        {
+            var velocity = mRb.velocity;
+            mRb.velocity = new Vector2(velocity.x, Mathf.Max(velocity.y, -15f));
+        }
 
     #region UnityEvent|Inspector面板挂载的方法
 
