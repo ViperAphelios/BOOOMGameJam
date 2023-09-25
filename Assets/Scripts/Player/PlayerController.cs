@@ -202,7 +202,7 @@ namespace Player
                 }
 
                 // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
-                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump) ||
+                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump && !haveJumpCache) ||
                     (mModel.isOnGround && !mModel.isJump))
                 {
                     mOnJump?.Invoke();
@@ -284,6 +284,8 @@ namespace Player
                 startAcceleration = false;
                 inputHorizontalValue = new Vector2(1, 0);
             }
+
+            Debug.Log("加速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
         }
 
         /// <summary>
@@ -296,6 +298,7 @@ namespace Player
             if (inputHorizontalValue.x < 0)
             {
                 inputHorizontalValue += new Vector2(1f / 3f, 0);
+                Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
                 if (inputHorizontalValue.x > 0)
                 {
                     endDecelerate = false;
@@ -306,6 +309,7 @@ namespace Player
             if (inputHorizontalValue.x > 0)
             {
                 inputHorizontalValue += new Vector2(-1f / 3f, 0);
+                Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
                 if (inputHorizontalValue.x < 0)
                 {
                     endDecelerate = false;
