@@ -50,7 +50,7 @@ namespace ZFramework.Managers
         }
 
         /// <summary>
-        /// 获得攻击行为的输入，可以在ProjectSetting中修改按键
+        /// 获得普通攻击行为的输入，可以在ProjectSetting中修改按键
         /// </summary>
         /// <returns>返回一个Bool值</returns>
         public bool GetAttackInput()
