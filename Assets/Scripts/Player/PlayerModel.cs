@@ -1,23 +1,26 @@
 using General;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Player
 {
     public class PlayerModel : Character
     {
-        [Header("跳跃和奔跑")]
-        // 跳跃相关
+        [Header("跳跃相关")]
         public float jumpForce;
 
         public int maxExtraJumpNum;
         public int remainingJumpNum;
         public bool canSecondJump;
 
-        // 跑步
-        public float runSpeed;
+        [Header("起步加速和静止减速时间")]
+        [Range(0, 0.5f)]
+        public float startAccelerationTime;
+
+        [Range(0, 0.3f)]
+        public float endDecelerateTime;
 
         [Header("冲刺相关")]
-        // 冲刺(闪避)
         public float dashSpeed;
 
         public float dashTimeSecond;
@@ -27,17 +30,17 @@ namespace Player
         public bool isDashInvincible;
 
         [Header("土狼时间")]
-        // 土狼时间,帧
-        public int maxCoyoteTimeFrame;
+        // 土狼时间,秒
+        public float maxCoyoteTime;
 
-        public int currentCoyoteTimeFrame;
+        public bool isCoyote;
+        //public float currentCoyoteTimeFrame;
 
 
         [Header("角色额外状态")]
         public bool isClimbUp;
 
-        public bool isWalk;
-        public bool isRun;
+        public bool isMove;
         public bool isJump;
         public bool isDash;
 
@@ -53,16 +56,10 @@ namespace Player
 
             remainingJumpNum = maxExtraJumpNum;
 
-            // 跑步参数默认
-            if (runSpeed <= 0)
-            {
-                runSpeed = 1.5f * normalSpeed;
-            }
-
             // 土狼时间参数默认
-            if (maxCoyoteTimeFrame <= 0)
+            if (maxCoyoteTime <= 0)
             {
-                maxCoyoteTimeFrame = 3;
+                maxCoyoteTime = 0.15f;
             }
 
             // 冲刺相关参数默认
@@ -77,6 +74,17 @@ namespace Player
             }
 
             canDash = true;
+
+            // 加速时间和减速时间参数默认
+            if (startAccelerationTime <= 0)
+            {
+                startAccelerationTime = 0.12f;
+            }
+
+            if (endDecelerateTime <= 0)
+            {
+                endDecelerateTime = 0.06f;
+            }
         }
     }
 }

@@ -14,29 +14,36 @@ namespace Player
         // 前向方向
         public Vector2 forwardDirection;
 
-        // Input的值
+        // Input轴向输入的值
         public Vector2 inputHorizontalValue;
+        public Vector2 inputVerticalValue;
+
 
         [Header("起步加速和结束减速")]
-        public bool startAcceleration;
+        public bool hasAccelerationAndDecelerate;
 
+        public bool isDebugAccelerationAndDecelerate;
+        public bool startAcceleration;
         public bool endDecelerate;
 
         [Header("是否有跳跃缓存")]
         public bool haveJumpCache;
 
-        private PlayerAnimation mPlayerAnimation;
+        [Header("是否处于冲刺静止阶段")]
+        public bool isDashStationary;
+
+        [Header("传感器")]
+        public RaySensor2D onGroundSensor;
+
+        public RaySensor2D cacheJumpSensor;
+        public RangeSensor2D coyoteTimeSensor;
+
         private Rigidbody2D mRb;
         private PlayerModel mModel;
 
         // Jump的委托，Update检测按键输入
         private UnityAction mOnJump;
 
-
-        [Header("传感器")]
-        public RaySensor2D onGroundSensor;
-
-        public RaySensor2D cacheJumpSensor;
 
         // 和该脚本在同一个物体上的类引用
         private void Awake()
@@ -49,12 +56,23 @@ namespace Player
         private void Start()
         {
             InitAction();
-            mPlayerAnimation = GetComponentInChildren<PlayerAnimation>();
         }
 
         private void FixedUpdate()
         {
-            CoyoteTimeCounter();
+            // 如果在冲刺静止阶段，直接退出FixedUpdate
+            if (isDashStationary)
+            {
+                mRb.velocity = Vector2.zero;
+                return;
+            }
+
+            if (mModel.isAttack)
+            {
+                mRb.velocity = new Vector2(0, mRb.velocity.y);
+                return;
+            }
+
             // 非冲刺状态才执行普通移动
             if (!mModel.isDash)
             {
@@ -67,11 +85,16 @@ namespace Player
                     Dash();
                 }
             }
+
+
+            LimitMaxVelocityY();
         }
+
 
         // 顺序-土狼时间计时-采集按键-修正方向-脉冲检测
         private void Update()
         {
+            PreventMoveErrorJam();
             InputCheck();
             CorrectPlayerDirection();
             SensorPulseAndCheck();
@@ -133,16 +156,15 @@ namespace Player
 
         private void Move()
         {
-            // 起步加速和结束减速检测
-            EndMoveCheck();
-            StartMoveCheck();
+            if (hasAccelerationAndDecelerate)
+            {
+                // 起步加速和结束减速检测
+                EndMoveCheck();
+                StartMoveCheck();
+            }
 
             // 调整速度
-            if (mModel.isWalk && mModel.isRun)
-            {
-                mModel.currentSpeed = mModel.runSpeed;
-            }
-            else
+            if (mModel.isMove)
             {
                 mModel.currentSpeed = mModel.normalSpeed;
             }
@@ -159,6 +181,12 @@ namespace Player
 
         private void Jump()
         {
+            // 如果在冲刺静止阶段，直接退出Jump
+            if (isDashStationary)
+            {
+                return;
+            }
+
             haveJumpCache = false;
             mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
@@ -174,24 +202,38 @@ namespace Player
         private void InputCheck()
         {
             // 横向移动输入
-            if (inputHorizontalValue != new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) < 1)
+            // 如果移动加速和停止减速
+            if (hasAccelerationAndDecelerate)
             {
-                endDecelerate = true;
+                if (inputHorizontalValue != new Vector2(0, 0) &&
+                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) < 1)
+                {
+                    endDecelerate = true;
+                    // 防卡死机制，这个减速状态最多保持0.51s
+                    TimersManager.SetTimer(this, 0.51f, () => { endDecelerate = false; });
+                }
+
+                if (inputHorizontalValue == new Vector2(0, 0) &&
+                    Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) > 0
+                    && !endDecelerate)
+                {
+                    startAcceleration = true;
+                    // 防卡死机制，这个加速状态最多保持0.51s
+                    TimersManager.SetTimer(this, 0.51f, () => { startAcceleration = false; });
+                    inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 /
+                                           (mModel.startAccelerationTime * 50f);
+                }
+            }
+            // 不进行移动加速和停止减速
+            else
+            {
+                inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove();
             }
 
-            if (inputHorizontalValue == new Vector2(0, 0) && Mathf.Abs(OldInputManager.GetHorizontalMove().x) > 0)
-            {
-                startAcceleration = true;
-                inputHorizontalValue = OldInputManager.GetHorizontalMove() * 1 / 6;
-            }
-
-            mModel.isWalk = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
-
-            // 跑动输入
-            mModel.isRun = OldInputManager.GetStartRunInput();
+            mModel.isMove = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
             // 跳跃输入
-            if (OldInputManager.GetJumpInput())
+            if (OldInputManager.Instance.GetJumpInput())
             {
                 cacheJumpSensor.Pulse();
 
@@ -202,14 +244,14 @@ namespace Player
                 }
 
                 // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
-                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump) ||
+                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump && !haveJumpCache) ||
                     (mModel.isOnGround && !mModel.isJump))
                 {
                     mOnJump?.Invoke();
                 }
 
                 // 土狼时间，既不在地面，又不在跳跃状态，
-                if (mModel.currentCoyoteTimeFrame > 0 && !mModel.isJump && !mModel.isOnGround)
+                if (mModel.isCoyote && !mModel.isJump && !mModel.isOnGround)
                 {
                     mOnJump?.Invoke();
                 }
@@ -221,38 +263,69 @@ namespace Player
                 mModel.isDash = true;
                 mModel.canDash = false;
 
-                // 如果解锁了冲刺无敌
-                if (mModel.dashCanInvincible)
-                {
-                    StartDashInvincible();
-                }
+                TryDash();
+            }
 
+            if (OldInputManager.Instance.GetAttackInput() && !mModel.isDash && !mModel.isAttack)
+            {
+                TryAttack();
+            }
+        }
+
+        // 尝试攻击，攻击的触发逻辑
+        private void TryAttack()
+        {
+            mModel.isAttack = true;
+            inputVerticalValue = OldInputManager.Instance.GetVerticalInput();
+            if (inputVerticalValue != Vector2.zero)
+            {
+                // TODO: 将执行不同方向的特殊攻击 
+            }
+            else
+            {
+                // TODO: 执行攻击
+                Attack();
+            }
+        }
+
+        private void Attack()
+        {
+            Debug.Log("攻击一次");
+            mModel.isAttack = false;
+        }
+
+        /// <summary>
+        /// 尝试冲刺，冲刺的触发逻辑，实际冲刺效果在FixedUpdate中的Dash()
+        /// </summary>
+        private void TryDash()
+        {
+            isDashStationary = true;
+            // 如果解锁了冲刺无敌
+            if (mModel.dashCanInvincible)
+            {
+                StartDashInvincible();
+            }
+
+            // 停止0.06s之后，进行冲刺计时，才进行冲刺操作
+            TimersManager.SetTimer(this, 0.06f, () =>
+            {
+                isDashStationary = false;
                 // 0.15秒后停止dash
                 TimersManager.SetTimer(this, 0.15f, () =>
                 {
                     mModel.isDash = false;
                     EndDashInvincible();
-                    Debug.Log("结束冲刺,结束冲刺无敌");
-                });
 
+                    Debug.Log("结束冲刺,结束冲刺无敌");
+                }, false, false);
                 // 2秒后才可以再次dash
                 TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
                 {
                     mModel.canDash = true;
-                    Debug.Log("可以再次冲刺");
-                });
-            }
-        }
 
-        /// <summary>
-        /// 土狼状态计时器
-        /// </summary>
-        private void CoyoteTimeCounter()
-        {
-            if (!mModel.isOnGround && !mModel.isJump && mModel.currentCoyoteTimeFrame > 0)
-            {
-                mModel.currentCoyoteTimeFrame -= 1;
-            }
+                    Debug.Log("可以再次冲刺");
+                }, false, false);
+            }, false, false);
         }
 
         /// <summary>
@@ -264,12 +337,12 @@ namespace Player
             if (!startAcceleration || !(Mathf.Abs(inputHorizontalValue.x) < 1)) return;
             if (inputHorizontalValue.x < 0)
             {
-                inputHorizontalValue += new Vector2(-1f / 6f, 0);
+                inputHorizontalValue += new Vector2(-1f / (mModel.startAccelerationTime * 50f), 0);
             }
 
             if (inputHorizontalValue.x > 0)
             {
-                inputHorizontalValue += new Vector2(1f / 6f, 0);
+                inputHorizontalValue += new Vector2(1f / (mModel.startAccelerationTime * 50f), 0);
             }
 
             // 限制最大值
@@ -284,6 +357,11 @@ namespace Player
                 startAcceleration = false;
                 inputHorizontalValue = new Vector2(1, 0);
             }
+
+            if (isDebugAccelerationAndDecelerate)
+            {
+                Debug.Log("加速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+            }
         }
 
         /// <summary>
@@ -295,7 +373,12 @@ namespace Player
             if (!endDecelerate) return;
             if (inputHorizontalValue.x < 0)
             {
-                inputHorizontalValue += new Vector2(1f / 3f, 0);
+                inputHorizontalValue += new Vector2(1f / (mModel.endDecelerateTime * 50f), 0);
+                if (isDebugAccelerationAndDecelerate)
+                {
+                    Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                }
+
                 if (inputHorizontalValue.x > 0)
                 {
                     endDecelerate = false;
@@ -305,7 +388,12 @@ namespace Player
 
             if (inputHorizontalValue.x > 0)
             {
-                inputHorizontalValue += new Vector2(-1f / 3f, 0);
+                inputHorizontalValue += new Vector2(-1f / (mModel.endDecelerateTime * 50f), 0);
+                if (isDebugAccelerationAndDecelerate)
+                {
+                    Debug.Log("减速阶段该帧水平横向速度为：" + inputHorizontalValue.x * mModel.currentSpeed * Time.fixedDeltaTime);
+                }
+
                 if (inputHorizontalValue.x < 0)
                 {
                     endDecelerate = false;
@@ -332,6 +420,27 @@ namespace Player
             // TODO: 结束无敌状态，恢复正常
         }
 
+        /// <summary>
+        /// 限制最大下落速度
+        /// </summary>
+        private void LimitMaxVelocityY()
+        {
+            var velocity = mRb.velocity;
+            mRb.velocity = new Vector2(velocity.x, Mathf.Max(velocity.y, -15f));
+        }
+
+        /// <summary>
+        /// 防止有人用极快的速度连续左右横跳，导致角色加速的同时又减速，直接卡住
+        /// </summary>
+        private void PreventMoveErrorJam()
+        {
+            if (endDecelerate && startAcceleration)
+            {
+                endDecelerate = false;
+                startAcceleration = false;
+                mRb.velocity = new Vector2(0f, mRb.velocity.y);
+            }
+        }
 
     #region UnityEvent|Inspector面板挂载的方法
 
@@ -347,9 +456,31 @@ namespace Player
             // 刷新可跳跃次数
             mModel.isJump = false;
             mModel.remainingJumpNum = mModel.maxExtraJumpNum;
+        }
 
-            // 再次接触地面，刷新土狼时间
-            mModel.currentCoyoteTimeFrame = mModel.maxCoyoteTimeFrame;
+        // 玩家离开地面的一瞬间检测是否属于土狼时间
+        public void PlayerIsCoyoteTime(GameObject obj, Sensor sensor)
+        {
+            if (mModel == null)
+            {
+                Debug.Log("没有Model");
+                return;
+            }
+
+            // 触发一次土狼时间传感器
+            coyoteTimeSensor.transform.localPosition = new Vector3(-0.3f, 0, 0);
+            coyoteTimeSensor.Pulse();
+            mModel.isCoyote = coyoteTimeSensor.GetNearestDetection();
+            if (mModel.isCoyote)
+            {
+                // 开始土狼时间计时,时间结束后触发土狼时间状态为假
+                TimersManager.SetTimer(this, mModel.maxCoyoteTime, () =>
+                {
+                    mModel.isCoyote = false;
+                    coyoteTimeSensor.transform.localPosition = new Vector3(0f, 0.5f, 0);
+                    coyoteTimeSensor.Pulse();
+                });
+            }
         }
 
     #endregion

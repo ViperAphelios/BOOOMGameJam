@@ -13,11 +13,11 @@ namespace Player
         private Rigidbody2D mRb;
 
         // 可以提高性能，不用遍历所有字符串对比
-        private static readonly int IsWalk = Animator.StringToHash("isWalk");
+        private static readonly int IsMove = Animator.StringToHash("isMove");
         private static readonly int IsJump = Animator.StringToHash("isJump");
-        private static readonly int VelocityY = Animator.StringToHash("velocityY");
-        private static readonly int IsRun = Animator.StringToHash("isRun");
         private static readonly int IsDash = Animator.StringToHash("isDash");
+        private static readonly int VelocityY = Animator.StringToHash("velocityY");
+        private static readonly int VelocityX = Animator.StringToHash("velocityX");
 
         private void Awake()
         {
@@ -40,11 +40,11 @@ namespace Player
         /// </summary>
         private void SetAnimationValue()
         {
-            mAnimator.SetBool(IsWalk, mModel.isWalk);
+            mAnimator.SetBool(IsMove, mModel.isMove);
             mAnimator.SetBool(IsJump, mModel.isJump);
-            mAnimator.SetBool(IsRun, mModel.isRun);
             mAnimator.SetBool(IsDash, mModel.isDash);
             mAnimator.SetFloat(VelocityY, mRb.velocity.y);
+            mAnimator.SetFloat(VelocityX, Mathf.Abs(mRb.velocity.x));
         }
     }
 }
