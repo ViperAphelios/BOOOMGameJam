@@ -209,7 +209,7 @@ namespace Player
                     Mathf.Abs(OldInputManager.Instance.GetHorizontalMove().x) < 1)
                 {
                     endDecelerate = true;
-                    // 防卡死机制，这个减速状态最多保持0.51s
+                    // 防卡死机制，这个减速状态最多保持0.51s,0.5s有一个其他参数
                     TimersManager.SetTimer(this, 0.51f, () => { endDecelerate = false; });
                 }
 
@@ -218,7 +218,7 @@ namespace Player
                     && !endDecelerate)
                 {
                     startAcceleration = true;
-                    // 防卡死机制，这个加速状态最多保持0.51s
+                    // 防卡死机制，这个加速状态最多保持0.51s，0.5s有一个其他参数
                     TimersManager.SetTimer(this, 0.51f, () => { startAcceleration = false; });
                     inputHorizontalValue = OldInputManager.Instance.GetHorizontalMove() * 1 /
                                            (mModel.startAccelerationTime * 50f);
@@ -306,6 +306,14 @@ namespace Player
                 StartDashInvincible();
             }
 
+            // 2秒后才可以再次dash
+            TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
+            {
+                mModel.canDash = true;
+
+                Debug.Log("可以再次冲刺");
+            }, false, false);
+
             // 停止0.06s之后，进行冲刺计时，才进行冲刺操作
             TimersManager.SetTimer(this, 0.06f, () =>
             {
@@ -317,13 +325,6 @@ namespace Player
                     EndDashInvincible();
 
                     Debug.Log("结束冲刺,结束冲刺无敌");
-                }, false, false);
-                // 2秒后才可以再次dash
-                TimersManager.SetTimer(this, mModel.dashCoolDown, () =>
-                {
-                    mModel.canDash = true;
-
-                    Debug.Log("可以再次冲刺");
                 }, false, false);
             }, false, false);
         }
