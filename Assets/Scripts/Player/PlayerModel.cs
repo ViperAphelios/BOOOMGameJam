@@ -9,8 +9,12 @@ namespace Player
         [Header("跳跃相关")]
         public float jumpForce;
 
-        public int maxExtraJumpNum;
-        public int remainingJumpNum;
+        public bool inAir;
+        public bool isFirstJump;
+        public bool isSecondJump;
+        public float firstJumpForce;
+        public float secondJumpForce;
+
         public bool canSecondJump;
 
         [Header("起步加速和静止减速时间")]
@@ -47,14 +51,6 @@ namespace Player
         protected override void Start()
         {
             base.Start();
-
-            // 跳跃参数默认
-            if (maxExtraJumpNum <= 0)
-            {
-                maxExtraJumpNum = 2;
-            }
-
-            remainingJumpNum = maxExtraJumpNum;
 
             // 土狼时间参数默认
             if (maxCoyoteTime <= 0)

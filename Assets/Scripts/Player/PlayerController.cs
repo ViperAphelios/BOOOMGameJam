@@ -41,8 +41,8 @@ namespace Player
         private Rigidbody2D mRb;
         private PlayerModel mModel;
 
-        // Jump的委托，Update检测按键输入
-        private UnityAction mOnJump;
+        // 二段跳SecondJump的委托，Update检测按键输入
+        private UnityAction mOnSecondJump;
 
 
         // 和该脚本在同一个物体上的类引用
@@ -112,12 +112,12 @@ namespace Player
 
         public void InitAction()
         {
-            mOnJump += Jump;
+            mOnSecondJump += SecondJump;
         }
 
         public void CancelAction()
         {
-            mOnJump -= Jump;
+            mOnSecondJump -= SecondJump;
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Player
             // 如果有缓存直接触发
             if (haveJumpCache && mModel.isOnGround)
             {
-                mOnJump?.Invoke();
+                mOnSecondJump?.Invoke();
             }
         }
 
@@ -179,7 +179,8 @@ namespace Player
             mRb.velocity = new Vector2(forwardDirection.x * mModel.dashSpeed * Time.fixedDeltaTime, 0);
         }
 
-        private void Jump()
+        // 二段跳采用瞬时跳跃，Impulse
+        private void SecondJump()
         {
             // 如果在冲刺静止阶段，直接退出Jump
             if (isDashStationary)
@@ -191,8 +192,6 @@ namespace Player
             mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
             mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
-            mModel.remainingJumpNum -= 1;
-
             // Debug.Log("跳跃一次");
         }
 
@@ -244,16 +243,16 @@ namespace Player
                 }
 
                 // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
-                if ((mModel.isJump && mModel.remainingJumpNum > 0 && mModel.canSecondJump && !haveJumpCache) ||
+                if ((mModel.isJump && mModel.canSecondJump && !haveJumpCache) ||
                     (mModel.isOnGround && !mModel.isJump))
                 {
-                    mOnJump?.Invoke();
+                    mOnSecondJump?.Invoke();
                 }
 
                 // 土狼时间，既不在地面，又不在跳跃状态，
                 if (mModel.isCoyote && !mModel.isJump && !mModel.isOnGround)
                 {
-                    mOnJump?.Invoke();
+                    mOnSecondJump?.Invoke();
                 }
             }
 
@@ -456,7 +455,6 @@ namespace Player
 
             // 刷新可跳跃次数
             mModel.isJump = false;
-            mModel.remainingJumpNum = mModel.maxExtraJumpNum;
         }
 
         // 玩家离开地面的一瞬间检测是否属于土狼时间
