@@ -86,22 +86,22 @@ Tilemap:
   m_AnimatedTiles: {}
   m_TileAssetArray:
   - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: f6380707f6218ea45a3457534b0780de, type: 2}
+    m_Data: {fileID: 11400000, guid: 29c12c5542ce38d47b2cfe8f0889a536, type: 2}
   - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: 0353712d4b4ccc649b877d55a020ada6, type: 2}
+    m_Data: {fileID: 11400000, guid: 3bfb38f4ab9b2174f9b267a4f94679ea, type: 2}
   - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: cd3e7e436e11f0646b872f6febc010ea, type: 2}
+    m_Data: {fileID: 11400000, guid: 2cbfb456e074fb74f9f3b81db89cba37, type: 2}
   - m_RefCount: 1
-    m_Data: {fileID: 11400000, guid: 0421fb69f090fb74e8d15372f9fbd2ba, type: 2}
+    m_Data: {fileID: 11400000, guid: d367539dac22c6346a064549a94854a2, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 1
-    m_Data: {fileID: -165268476, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
+    m_Data: {fileID: -843035065, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
   - m_RefCount: 1
-    m_Data: {fileID: 1605236399, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
+    m_Data: {fileID: 169227346, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
   - m_RefCount: 1
-    m_Data: {fileID: 1759724749, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
+    m_Data: {fileID: 1818048220, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
   - m_RefCount: 1
-    m_Data: {fileID: -1411197485, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
+    m_Data: {fileID: 1585748267, guid: 06e460fb34c73fb46891e71ede720cb8, type: 3}
   m_TileMatrixArray:
   - m_RefCount: 4
     m_Data:
@@ -229,7 +229,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.19512248, y: 0.49192584}
+  m_Offset: {x: 0.14571959, y: 0.49192584}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -240,7 +240,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 3.5804825, y: 1.0161483}
+  m_Size: {x: 3.7235527, y: 1.0161483}
   m_EdgeRadius: 0
 --- !u!1 &7851342221414159626
 GameObject:
@@ -297,7 +297,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8415073507675399260}
   m_Layer: 0
-  m_Name: Thorns_1
+  m_Name: Thorns_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
