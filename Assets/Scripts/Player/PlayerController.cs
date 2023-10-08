@@ -40,6 +40,7 @@ namespace Player
 
         private Rigidbody2D mRb;
         private PlayerModel mModel;
+        private Collider2D mBodyCollider2D;
         private PlayerAnimation mAnimationControl;
 
         // 二段跳SecondJump的委托，Update检测按键输入
@@ -52,6 +53,7 @@ namespace Player
             mModel = Controller.GetModel<PlayerModel>(gameObject);
             mRb = GetComponent<Rigidbody2D>();
             mAnimationControl = GetComponent<PlayerAnimation>();
+            mBodyCollider2D = GetComponent<CapsuleCollider2D>();
         }
 
         // 位于该脚本的子物体或者父物体的引用
@@ -74,6 +76,7 @@ namespace Player
                 return;
             }
 
+            // 攻击状态不能左右移动
             if (mModel.isAttack)
             {
                 mRb.velocity = new Vector2(0, mRb.velocity.y);
@@ -267,7 +270,7 @@ namespace Player
             }
 
             // 二段跳，在一段跳的下落过程中的跳跃输入
-            if (mModel.isFirstJumpDown && mModel.isJump && !mModel.isSecondJump && mModel.canSecondJump &&
+            if (!mModel.isFirstJumpUp && mModel.isJump && !mModel.isSecondJump && mModel.canSecondJump &&
                 !mModel.isOnGround && OldInputManager.Instance.GetJumpButtonDownInput())
             {
                 //先检查一次是否到达缓存的距离 
@@ -349,21 +352,31 @@ namespace Player
         {
             mModel.isAttack = true;
             inputVerticalValue = OldInputManager.Instance.GetVerticalInput();
-            if (inputVerticalValue != Vector2.zero)
-            {
-                // TODO: 将执行不同方向的特殊攻击 
-            }
-            else
-            {
-                // TODO: 执行攻击
-                Attack();
-            }
+            AttackForward();
+            // if (inputVerticalValue == Vector2.up)
+            // {
+            //     // TODO: 将执行不同方向的特殊攻击
+            //     AttackUp();
+            // }
+            // else
+            // {
+            //     // TODO: 执行攻击
+            //     AttackForward();
+            // }
         }
 
-        private void Attack()
+        private void AttackUp()
         {
-            Debug.Log("攻击一次");
-            mModel.isAttack = false;
+            Debug.Log("向上攻击一次");
+        }
+
+        private void AttackForward()
+        {
+            Debug.Log("向前攻击一次");
+            mModel.isAttack = true;
+
+            // 播放一次攻击
+            mAnimationControl.PlayAttackAnim();
         }
 
         /// <summary>
@@ -372,6 +385,7 @@ namespace Player
         private void TryDash()
         {
             isDashStationary = true;
+
             // 如果解锁了冲刺无敌
             if (mModel.dashCanInvincible)
             {
@@ -391,7 +405,7 @@ namespace Player
             {
                 isDashStationary = false;
                 // 0.15秒后停止dash
-                TimersManager.SetTimer(this, 0.15f, () =>
+                TimersManager.SetTimer(this, mModel.dashTimeSecond, () =>
                 {
                     mModel.isDash = false;
                     EndDashInvincible();
@@ -481,7 +495,9 @@ namespace Player
         private void StartDashInvincible()
         {
             mModel.isDashInvincible = true;
-            // Todo: 冲刺无敌的操作
+
+            // 冲刺无敌的操作,关闭碰撞体，设置0.06s+冲刺时间，之后，重新打开碰撞体
+            mBodyCollider2D.enabled = false;
         }
 
         /// <summary>
@@ -490,7 +506,8 @@ namespace Player
         private void EndDashInvincible()
         {
             mModel.isDashInvincible = false;
-            // TODO: 结束无敌状态，恢复正常
+            // 结束无敌状态，恢复正常，重新打开碰撞体
+            mBodyCollider2D.enabled = true;
         }
 
         /// <summary>

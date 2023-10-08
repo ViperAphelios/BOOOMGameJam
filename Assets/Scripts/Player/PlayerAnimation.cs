@@ -16,6 +16,7 @@ namespace Player
         private static readonly int IsMove = Animator.StringToHash("isMove");
         private static readonly int IsJump = Animator.StringToHash("isJump");
         private static readonly int IsDash = Animator.StringToHash("isDash");
+        private static readonly int IsAttack = Animator.StringToHash("isAttack");
         private static readonly int VelocityY = Animator.StringToHash("velocityY");
         private static readonly int VelocityX = Animator.StringToHash("velocityX");
 
@@ -43,11 +44,19 @@ namespace Player
             mAnimator.SetBool(IsMove, mModel.isMove);
             mAnimator.SetBool(IsJump, mModel.isJump);
             mAnimator.SetBool(IsDash, mModel.isDash);
+            mAnimator.SetBool(IsAttack, mModel.isAttack);
             mAnimator.SetFloat(VelocityY, mRb.velocity.y);
             mAnimator.SetFloat(VelocityX, Mathf.Abs(mRb.velocity.x));
         }
-        public void PlayLandAnimation(){
+
+        public void PlayLandAnimation()
+        {
             mAnimator.Play("Land");
+        }
+
+        public void PlayAttackAnim()
+        {
+            mAnimator.Play("Attack");
         }
     }
 }
