@@ -7,23 +7,19 @@ namespace Player
     public class PlayerModel : Character
     {
         [Header("跳跃相关")]
-        public float jumpForce;
-
         // 单次，首次跳跃的瞬时力的常量
         public float singleJumpForce;
 
         // 持续跳跃的力的常量
         public float firstJumpContinueForce;
 
-        public bool inAir;
+        public bool isFirstJumpDown;
         public bool isFirstJumpUp;
         public bool isFirstJumpStopTime;
-        public bool isSecondJump;
         public float firstJumpForce;
+        public bool isSecondJump;
         public float secondJumpForce;
-
         public bool canSecondJump;
-        public float maxJumpHeight;
 
         [Header("起步加速和静止减速时间")]
         [Range(0, 0.5f)]

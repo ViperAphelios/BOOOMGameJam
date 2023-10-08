@@ -29,12 +29,6 @@ namespace Player
         [Header("是否有跳跃缓存")]
         public bool haveJumpCache;
 
-        [Header("跳跃相关")]
-        public float firstJumpStartPositionY;
-
-        public float firstJumpCurrentPositionY;
-
-
         [Header("是否处于冲刺静止阶段")]
         public bool isDashStationary;
 
@@ -106,7 +100,7 @@ namespace Player
         private void Update()
         {
             PreventMoveErrorJam();
-            EndFirstJumpCheck();
+            EndFirstJumpUpCheck();
             InputCheck();
             CorrectPlayerDirection();
             SensorPulseAndCheck();
@@ -141,12 +135,6 @@ namespace Player
             // 角色是否在地面上
             onGroundSensor.Pulse();
             mModel.isOnGround = onGroundSensor.GetNearestDetection();
-
-            // 如果有缓存直接触发
-            if (haveJumpCache && mModel.isOnGround)
-            {
-                mOnSecondJump?.Invoke();
-            }
         }
 
         /// <summary>
@@ -170,22 +158,8 @@ namespace Player
         /// <summary>
         /// 检测第一段跳跃的上升阶段是否结束
         /// </summary>
-        private void EndFirstJumpCheck()
+        private void EndFirstJumpUpCheck()
         {
-            // if (mModel.isFirstJumpUp)
-            // {
-            //     firstJumpCurrentPositionY = transform.position.y;
-            //     if (firstJumpCurrentPositionY - firstJumpStartPositionY >= mModel.maxJumpHeight)
-            //     {
-            //         Debug.Log("第一段跳跃达到最大高度");
-            //         mModel.isFirstJumpUp = false;
-            //         firstJumpStartPositionY = firstJumpCurrentPositionY;
-            //         // 到达顶点停留0.1s
-            //         mModel.isFirstJumpStopTime = true;
-            //         TimersManager.SetTimer(this, 0.1f, () => { mModel.isFirstJumpStopTime = false; });
-            //     }
-            // }
-
             if (mModel.isFirstJumpStopTime)
             {
                 mRb.velocity = new Vector2(mRb.velocity.x, 0);
@@ -216,7 +190,7 @@ namespace Player
         {
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
             mRb.AddForce(Vector2.up * mModel.firstJumpForce, ForceMode2D.Force);
-            Debug.Log(Vector2.up * mModel.firstJumpForce);
+            //Debug.Log(Vector2.up * mModel.firstJumpForce);
         }
 
         // 冲刺(闪避)
@@ -235,9 +209,9 @@ namespace Player
             }
 
             haveJumpCache = false;
-            mModel.isJump = true;
             mRb.velocity = new Vector2(mRb.velocity.x, 0);
-            mRb.AddForce(Vector2.up * mModel.jumpForce, ForceMode2D.Impulse);
+            mRb.AddForce(Vector2.up * mModel.secondJumpForce, ForceMode2D.Impulse);
+
             // Debug.Log("跳跃一次");
         }
 
@@ -277,13 +251,48 @@ namespace Player
 
             mModel.isMove = Mathf.Abs(inputHorizontalValue.x) >= 0.1f;
 
+            // 跳跃缓存，在二段跳的下落过程中
+            if (mModel.isSecondJump && mModel.isJump && !mModel.isOnGround &&
+                OldInputManager.Instance.GetJumpButtonDownInput())
+            {
+                //检查一次是否到达缓存的距离 
+                cacheJumpSensor.Pulse();
+                //如果有地面，则触发跳跃缓存
+                if (cacheJumpSensor.GetNearestDetection())
+                {
+                    haveJumpCache = true;
+                }
+            }
+
+            // 二段跳，在一段跳的下落过程中的跳跃输入
+            if (mModel.isFirstJumpDown && mModel.isJump && !mModel.isSecondJump && mModel.canSecondJump &&
+                !mModel.isOnGround && OldInputManager.Instance.GetJumpButtonDownInput())
+            {
+                //先检查一次是否到达缓存的距离 
+                cacheJumpSensor.Pulse();
+
+                // 检查是否有跳跃缓存,按跳跃的时候才检查一次,如果按下跳跃的距离是缓存距离内，则不触发二段跳跃
+                if (cacheJumpSensor.GetNearestDetection())
+                {
+                    haveJumpCache = true;
+                }
+                else
+                {
+                    mOnSecondJump?.Invoke();
+                    mModel.isSecondJump = true;
+                }
+            }
+
             // 第一段跳跃
-            if (!mModel.isFirstJumpUp && OldInputManager.Instance.GetJumpButtonDownInput() &&
+            if (!mModel.isFirstJumpUp && (OldInputManager.Instance.GetJumpButtonDownInput() || haveJumpCache) &&
                 (mModel.isOnGround || mModel.isCoyote))
             {
                 mModel.isFirstJumpUp = true;
                 mModel.isJump = true;
                 mModel.firstJumpForce = mModel.singleJumpForce;
+
+                // 只要有跳跃，缓存就清除
+                haveJumpCache = false;
 
                 // 0.1s之后改变持续的速度，如果开始跳跃0.1s之后还处于跳跃状态，则表示不是单点跳跃
                 TimersManager.SetTimer(this, 0.1f, () =>
@@ -300,9 +309,14 @@ namespace Player
                     if (mModel.isFirstJumpUp)
                     {
                         mModel.isFirstJumpUp = false;
-                        // 到达顶点停留0.1s
+                        // 设置顶点停留
                         mModel.isFirstJumpStopTime = true;
-                        TimersManager.SetTimer(this, 0.1f, () => { mModel.isFirstJumpStopTime = false; });
+                        // 时间为0.1s，然后关闭顶点停留，改为第一段跳跃下落阶段
+                        TimersManager.SetTimer(this, 0.1f, () =>
+                        {
+                            mModel.isFirstJumpStopTime = false;
+                            mModel.isFirstJumpDown = true;
+                        });
                     }
                 });
             }
@@ -314,7 +328,6 @@ namespace Player
             }
 
 
-            // 二段跳，跳跃输入
             // if (OldInputManager.Instance.GetSecondJumpInput())
             // {
             //     cacheJumpSensor.Pulse();
@@ -536,8 +549,10 @@ namespace Player
                 return;
             }
 
-            // 刷新可跳跃次数
+            // 着陆到地面，要初始化跳跃参数
             mModel.isJump = false;
+            mModel.isFirstJumpDown = false;
+            mModel.isSecondJump = false;
         }
 
         // 玩家离开地面的一瞬间检测是否属于土狼时间
@@ -563,14 +578,6 @@ namespace Player
                     coyoteTimeSensor.Pulse();
                 });
             }
-        }
-
-        /// <summary>
-        /// 当开始第一段跳跃，离开地面时候，记录起跳位置的Y轴
-        /// </summary>
-        public void RecordStartJumpPosition(GameObject obj, Sensor sensor)
-        {
-            firstJumpStartPositionY = transform.position.y;
         }
 
     #endregion
