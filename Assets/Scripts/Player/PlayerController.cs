@@ -40,6 +40,7 @@ namespace Player
 
         private Rigidbody2D mRb;
         private PlayerModel mModel;
+        private PlayerAnimation mAnimationControl;
 
         // 二段跳SecondJump的委托，Update检测按键输入
         private UnityAction mOnSecondJump;
@@ -50,6 +51,7 @@ namespace Player
         {
             mModel = Controller.GetModel<PlayerModel>(gameObject);
             mRb = GetComponent<Rigidbody2D>();
+            mAnimationControl = GetComponent<PlayerAnimation>();
         }
 
         // 位于该脚本的子物体或者父物体的引用
@@ -327,31 +329,6 @@ namespace Player
                 mModel.isFirstJumpUp = OldInputManager.Instance.GetFirstJumpContinueInput();
             }
 
-
-            // if (OldInputManager.Instance.GetSecondJumpInput())
-            // {
-            //     cacheJumpSensor.Pulse();
-            //
-            //     // 检查是否有跳跃缓存,按跳跃的时候才检查一次
-            //     if (cacheJumpSensor.GetNearestDetection())
-            //     {
-            //         haveJumpCache = true;
-            //     }
-            //
-            //     // 满足第一段跳跃或者第二段跳跃的条件即可发布跳跃委托
-            //     if ((mModel.isJump && mModel.canSecondJump && !haveJumpCache) ||
-            //         (mModel.isOnGround && !mModel.isJump))
-            //     {
-            //         mOnSecondJump?.Invoke();
-            //     }
-            //
-            //     // 土狼时间，既不在地面，又不在跳跃状态，
-            //     if (mModel.isCoyote && !mModel.isJump && !mModel.isOnGround)
-            //     {
-            //         mOnSecondJump?.Invoke();
-            //     }
-            // }
-
             // 冲刺输入
             if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash)
             {
@@ -547,6 +524,12 @@ namespace Player
             {
                 Debug.Log("没有Model");
                 return;
+            }
+
+            // 播放着陆动画
+            if (mModel.isJump)
+            {
+                mAnimationControl.PlayLandAnimation();
             }
 
             // 着陆到地面，要初始化跳跃参数

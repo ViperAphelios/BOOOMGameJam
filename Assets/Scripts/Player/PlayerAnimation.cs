@@ -46,5 +46,8 @@ namespace Player
             mAnimator.SetFloat(VelocityY, mRb.velocity.y);
             mAnimator.SetFloat(VelocityX, Mathf.Abs(mRb.velocity.x));
         }
+        public void PlayLandAnimation(){
+            mAnimator.Play("Land");
+        }
     }
 }
