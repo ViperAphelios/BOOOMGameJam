@@ -76,10 +76,10 @@ namespace Player
                 return;
             }
 
-            // 攻击状态不能左右移动
+            // 攻击状态不能移动
             if (mModel.isAttack)
             {
-                mRb.velocity = new Vector2(0, mRb.velocity.y);
+                mRb.velocity = Vector2.zero;
                 return;
             }
 
@@ -352,31 +352,39 @@ namespace Player
         {
             mModel.isAttack = true;
             inputVerticalValue = OldInputManager.Instance.GetVerticalInput();
-            AttackForward();
-            // if (inputVerticalValue == Vector2.up)
-            // {
-            //     // TODO: 将执行不同方向的特殊攻击
-            //     AttackUp();
-            // }
-            // else
-            // {
-            //     // TODO: 执行攻击
-            //     AttackForward();
-            // }
+            // 检查是否有上下按键输入
+            if (inputVerticalValue == Vector2.right)
+            {
+                AttackUp();
+            }
+            else if (inputVerticalValue == Vector2.left && mModel.isJump)
+            {
+                AttackDown();
+            }
+            else
+            {
+                AttackForward();
+            }
         }
 
         private void AttackUp()
         {
             Debug.Log("向上攻击一次");
+            mAnimationControl.PlayUpAttackAnim();
+        }
+
+        private void AttackDown()
+        {
+            Debug.Log("向下攻击一次");
+            mAnimationControl.PlayDownAttackAnim();
         }
 
         private void AttackForward()
         {
             Debug.Log("向前攻击一次");
-            mModel.isAttack = true;
 
-            // 播放一次攻击
-            mAnimationControl.PlayAttackAnim();
+            // 播放一次前向攻击
+            mAnimationControl.PlayForwardAttackAnim();
         }
 
         /// <summary>
