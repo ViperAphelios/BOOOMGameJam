@@ -388,6 +388,7 @@ namespace Player
             // 5秒之后自动销毁物体
             Destroy(arrowObj, 5f);
             mArrowControl = arrowObj.GetComponent<ArrowControl>();
+            mArrowControl.ownerModel = mModel;
             // 调整方向
             mArrowControl.forwardDir = forwardDirection;
             mArrowControl.CorrectArrowForward();

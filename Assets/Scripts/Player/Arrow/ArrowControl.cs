@@ -10,13 +10,12 @@ namespace Player.Arrow
 
         public float flySpeed;
 
-        // Start is called before the first frame update
-        void Start()
-        { }
 
         // Update is called once per frame
         void Update()
-        { }
+        {
+            transform.Translate(forwardDir * (flySpeed * Time.deltaTime));
+        }
 
         /// <summary>
         ///  修正当前的箭矢的朝向
