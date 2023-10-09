@@ -1,13 +1,17 @@
+using Player.Arrow;
 using UnityEngine;
+using UnityEngine.Events;
 using ZFramework.Interfaces;
 
 namespace Player
 {
-    public class PlayerSpriteAnimEventControl : MonoBehaviour, ICharacterController
+    public class PlayerSpriteAnimEventControl : MonoBehaviour
     {
-        public IController Controller => this;
-
+        // 玩家数据
         private PlayerModel mModel;
+
+        // 开始射箭委托
+        public UnityAction startArrowAction;
 
         // Start is called before the first frame update
         void Start()
@@ -15,25 +19,6 @@ namespace Player
             mModel = GetComponentInParent<PlayerModel>();
         }
 
-        // Update is called once per frame
-        void Update()
-        { }
-
-
-        public void InitManager()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void InitAction()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void CancelAction()
-        {
-            throw new System.NotImplementedException();
-        }
 
     #region AnimationEvent 动画事件
 
@@ -41,6 +26,12 @@ namespace Player
         public void EndAttackState()
         {
             mModel.isAttack = false;
+        }
+
+        // 产生弓箭
+        public void StartArrowAttack()
+        {
+            startArrowAction?.Invoke();
         }
 
     #endregion

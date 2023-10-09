@@ -68,7 +68,16 @@ namespace ZFramework.Managers
             return !isStopPlayerInput && Input.GetButtonDown("Attack");
         }
 
-        
+        /// <summary>
+        /// 获得射箭攻击行为的输入，可以在ProjectSetting中修改按键
+        /// </summary>
+        /// <returns></returns>
+        public bool GetBowAttackInput()
+        {
+            return !isStopPlayerInput && Input.GetButtonDown("BowAttack");
+        }
+
+
         // /// <summary>
         // /// 获得第一段跳跃按键的回弹，每次按下之后，只能执行一次跳跃，必须松开按键再次进行
         // /// </summary>
