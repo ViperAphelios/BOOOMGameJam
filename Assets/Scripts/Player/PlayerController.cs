@@ -85,9 +85,12 @@ namespace Player
             // 攻击状态不能移动
             if (mModel.isAttack)
             {
-                mRb.velocity = new Vector2(0, 1f);
+                //mRb.gravityScale = 0;
+                mRb.velocity = new Vector2(0, 1.2f);
                 return;
             }
+
+            mRb.gravityScale = 6.2f;
 
             if (mModel.isFirstJumpUp && !isDashStationary && !mModel.isAttack)
             {
@@ -346,7 +349,7 @@ namespace Player
             }
 
             // 冲刺输入
-            if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash)
+            if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash && !mModel.isAttack)
             {
                 mModel.isDash = true;
                 mModel.canDash = false;
@@ -431,7 +434,7 @@ namespace Player
                 mModel.canDash = true;
 
                 Debug.Log("可以再次冲刺");
-            }, false, false);
+            });
 
             // 停止0.06s之后，进行冲刺计时，才进行冲刺操作
             TimersManager.SetTimer(this, 0.06f, () =>
@@ -444,8 +447,8 @@ namespace Player
                     EndDashInvincible();
 
                     Debug.Log("结束冲刺,结束冲刺无敌");
-                }, false, false);
-            }, false, false);
+                });
+            });
         }
 
         /// <summary>
