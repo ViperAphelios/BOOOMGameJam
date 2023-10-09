@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CharaAttack
+  m_Name: CharaAttackUp
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -48,20 +48,11 @@ AnimationClip:
         weightedMode: 0
         inWeight: 0
         outWeight: 0
-      - serializedVersion: 3
-        time: 0.33333334
-        value: 1
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_IsActive
-    path: ForwardAttackRangeSensor
+    path: UpAttackRangeSensor
     classID: 1
     script: {fileID: 0}
     flags: 16
@@ -69,11 +60,13 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 21300000, guid: fe8506060e19b4245b39ecd3eabb34cb, type: 3}
+      value: {fileID: 21300000, guid: 6387eb7d98410e448b46184d7f823f00, type: 3}
+    - time: 0.083333336
+      value: {fileID: 21300000, guid: f33d3fff4ff3a23418a6c03ba98d8f9d, type: 3}
     - time: 0.16666667
-      value: {fileID: 21300000, guid: e14970791a35e754286bb6fa0c789e8e, type: 3}
+      value: {fileID: 21300000, guid: eef79b0ec9adf374dbb4862d9c91b401, type: 3}
     - time: 0.25
-      value: {fileID: 21300000, guid: 7ae4a6085d0a3f8498fe9901f9d5710f, type: 3}
+      value: {fileID: 21300000, guid: f7447265953772b48a30fbe70331f3e8, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -87,7 +80,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 1334560512
+      path: 1443025352
       attribute: 2086281974
       script: {fileID: 0}
       typeID: 1
@@ -105,9 +98,10 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 21300000, guid: fe8506060e19b4245b39ecd3eabb34cb, type: 3}
-    - {fileID: 21300000, guid: e14970791a35e754286bb6fa0c789e8e, type: 3}
-    - {fileID: 21300000, guid: 7ae4a6085d0a3f8498fe9901f9d5710f, type: 3}
+    - {fileID: 21300000, guid: 6387eb7d98410e448b46184d7f823f00, type: 3}
+    - {fileID: 21300000, guid: f33d3fff4ff3a23418a6c03ba98d8f9d, type: 3}
+    - {fileID: 21300000, guid: eef79b0ec9adf374dbb4862d9c91b401, type: 3}
+    - {fileID: 21300000, guid: f7447265953772b48a30fbe70331f3e8, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -160,20 +154,11 @@ AnimationClip:
         weightedMode: 0
         inWeight: 0
         outWeight: 0
-      - serializedVersion: 3
-        time: 0.33333334
-        value: 1
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_IsActive
-    path: ForwardAttackRangeSensor
+    path: UpAttackRangeSensor
     classID: 1
     script: {fileID: 0}
     flags: 16
