@@ -49,14 +49,44 @@ namespace Player
             mAnimator.SetFloat(VelocityX, Mathf.Abs(mRb.velocity.x));
         }
 
+        /// <summary>
+        /// 播放着陆动画
+        /// </summary>
         public void PlayLandAnimation()
         {
             mAnimator.Play("Land");
         }
 
-        public void PlayAttackAnim()
+        /// <summary>
+        /// 播放向前攻击动画
+        /// </summary>
+        public void PlayForwardAttackAnim()
         {
             mAnimator.Play("Attack");
+        }
+
+        /// <summary>
+        /// 播放向上攻击动画
+        /// </summary>
+        public void PlayUpAttackAnim()
+        {
+            mAnimator.Play("AttackUp");
+        }
+
+        /// <summary>
+        /// 播放向下攻击动画
+        /// </summary>
+        public void PlayDownAttackAnim()
+        {
+            mAnimator.Play("AttackDown");
+        }
+
+        /// <summary>
+        /// 播放射箭动画
+        /// </summary>
+        public void PlayBowAttackAnim()
+        {
+            mAnimator.Play("BowAttack");
         }
     }
 }

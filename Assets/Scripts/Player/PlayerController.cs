@@ -1,4 +1,5 @@
 using Micosmo.SensorToolkit;
+using Player.Arrow;
 using Timers;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,6 +11,15 @@ namespace Player
     public class PlayerController : MonoBehaviour, ICharacterController
     {
         public IController Controller => this;
+        public PlayerSpriteAnimEventControl animEventControl;
+
+        [Header("弓箭")]
+        // 弓箭发射点
+        public Transform arrowPoint;
+
+        // 弓箭数据
+        private GameObject mArrow;
+        private ArrowControl mArrowControl;
 
         // 前向方向
         public Vector2 forwardDirection;
@@ -60,15 +70,11 @@ namespace Player
         private void Start()
         {
             InitAction();
+            mArrow = Resources.Load<GameObject>("Prefab/Arrow");
         }
 
         private void FixedUpdate()
         {
-            if (mModel.isFirstJumpUp)
-            {
-                FirstJump();
-            }
-
             // 如果在冲刺静止阶段，直接退出FixedUpdate
             if (isDashStationary)
             {
@@ -76,11 +82,19 @@ namespace Player
                 return;
             }
 
-            // 攻击状态不能左右移动
+            // 攻击状态不能移动
             if (mModel.isAttack)
             {
-                mRb.velocity = new Vector2(0, mRb.velocity.y);
+                //mRb.gravityScale = 0;
+                mRb.velocity = new Vector2(0, 1.2f);
                 return;
+            }
+
+            mRb.gravityScale = 6.2f;
+
+            if (mModel.isFirstJumpUp && !isDashStationary && !mModel.isAttack)
+            {
+                FirstJump();
             }
 
             // 非冲刺状态才执行普通移动
@@ -125,11 +139,13 @@ namespace Player
         public void InitAction()
         {
             mOnSecondJump += SecondJump;
+            animEventControl.startArrowAction += BowAttackStart;
         }
 
         public void CancelAction()
         {
             mOnSecondJump -= SecondJump;
+            animEventControl.startArrowAction -= BowAttackStart;
         }
 
         /// <summary>
@@ -333,7 +349,7 @@ namespace Player
             }
 
             // 冲刺输入
-            if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash)
+            if (OldInputManager.Instance.GetDashInput() && !mModel.isDash && mModel.canDash && !mModel.isAttack)
             {
                 mModel.isDash = true;
                 mModel.canDash = false;
@@ -341,42 +357,63 @@ namespace Player
                 TryDash();
             }
 
+            // 射箭攻击输入
+            if (OldInputManager.Instance.GetBowAttackInput() && !mModel.isDash && !mModel.isAttack)
+            {
+                TryBowAttack();
+            }
+
+            // 普通攻击输入
             if (OldInputManager.Instance.GetAttackInput() && !mModel.isDash && !mModel.isAttack)
             {
-                TryAttack();
+                TryNormalAttack();
             }
         }
 
-        // 尝试攻击，攻击的触发逻辑
-        private void TryAttack()
+        /// <summary>
+        /// 尝试弓箭攻击
+        /// </summary>
+        private void TryBowAttack()
+        {
+            mModel.isAttack = true;
+            BowAttackForwardAnim();
+        }
+
+        /// <summary>
+        /// 在射箭动画播放的最后触发
+        /// </summary>
+        private void BowAttackStart()
+        {
+            var arrowObj = Instantiate(mArrow, arrowPoint.position, Quaternion.identity);
+            // 5秒之后自动销毁物体
+            Destroy(arrowObj, 5f);
+            mArrowControl = arrowObj.GetComponent<ArrowControl>();
+            mArrowControl.ownerModel = mModel;
+            // 调整方向
+            mArrowControl.forwardDir = forwardDirection;
+            mArrowControl.CorrectArrowForward();
+        }
+
+        /// <summary>
+        /// 尝试普通攻击，攻击的触发逻辑
+        /// </summary>
+        private void TryNormalAttack()
         {
             mModel.isAttack = true;
             inputVerticalValue = OldInputManager.Instance.GetVerticalInput();
-            AttackForward();
-            // if (inputVerticalValue == Vector2.up)
-            // {
-            //     // TODO: 将执行不同方向的特殊攻击
-            //     AttackUp();
-            // }
-            // else
-            // {
-            //     // TODO: 执行攻击
-            //     AttackForward();
-            // }
-        }
-
-        private void AttackUp()
-        {
-            Debug.Log("向上攻击一次");
-        }
-
-        private void AttackForward()
-        {
-            Debug.Log("向前攻击一次");
-            mModel.isAttack = true;
-
-            // 播放一次攻击
-            mAnimationControl.PlayAttackAnim();
+            // 检查是否有上下按键输入
+            if (inputVerticalValue == Vector2.right)
+            {
+                AttackUp();
+            }
+            else if (inputVerticalValue == Vector2.left && mModel.isJump)
+            {
+                AttackDown();
+            }
+            else
+            {
+                AttackForward();
+            }
         }
 
         /// <summary>
@@ -398,7 +435,7 @@ namespace Player
                 mModel.canDash = true;
 
                 Debug.Log("可以再次冲刺");
-            }, false, false);
+            });
 
             // 停止0.06s之后，进行冲刺计时，才进行冲刺操作
             TimersManager.SetTimer(this, 0.06f, () =>
@@ -411,8 +448,8 @@ namespace Player
                     EndDashInvincible();
 
                     Debug.Log("结束冲刺,结束冲刺无敌");
-                }, false, false);
-            }, false, false);
+                });
+            });
         }
 
         /// <summary>
@@ -531,6 +568,36 @@ namespace Player
                 mRb.velocity = new Vector2(0f, mRb.velocity.y);
             }
         }
+
+    #region 攻击动画函数
+
+        private void AttackUp()
+        {
+            //Debug.Log("向上攻击一次");
+
+            mAnimationControl.PlayUpAttackAnim();
+        }
+
+        private void AttackDown()
+        {
+            // Debug.Log("向下攻击一次");
+
+            mAnimationControl.PlayDownAttackAnim();
+        }
+
+        private void AttackForward()
+        {
+            // Debug.Log("向前攻击一次");
+            // 播放一次前向攻击
+            mAnimationControl.PlayForwardAttackAnim();
+        }
+
+        private void BowAttackForwardAnim()
+        {
+            mAnimationControl.PlayBowAttackAnim();
+        }
+
+    #endregion
 
     #region UnityEvent|Inspector面板挂载的方法
 
